@@ -66,6 +66,19 @@ services:
     networks:
       - audit_net
 
+  # ─────────────────────────────────────────────────────────────
+  # Cloudflare Tunnel（外網存取）
+  # ─────────────────────────────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: audit-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://app:3000
+    depends_on:
+      - app
+    networks:
+      - audit_net
+
 # ─────────────────────────────────────────────────────────────
 # Persistent volumes
 # ─────────────────────────────────────────────────────────────
