@@ -588,27 +588,24 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 /* ── Receipt Modal Match Bar ── */
 .rm-match-bar { max-width:88vw; width:88vw; background:rgba(0,0,0,.6); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; margin-top:-4px; }
 .rm-match-bar-title { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
-/* 欄位標題列（月份 / 日期 / 主項目 / 金額 / 結果 / AI 核對說明） */
-.rm-match-head { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.55); font-size:12px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; }
-.rm-match-head > span { white-space:nowrap; }
-.rm-match-head .rmh-amt { text-align:right; }
-.rm-match-head .rmh-result { text-align:center; }
+/* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
+.rm-match-head { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.rm-match-head > span { white-space:nowrap; text-align:center; }
 /* 資料列：改為 grid 配合上面 head；AI 核對說明可換行完整顯示 */
-.rm-match-row { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:7px 10px; margin-bottom:4px; cursor:default; }
+.rm-match-row { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:8px 10px; margin-bottom:4px; cursor:default; }
 .rm-match-row:last-child { margin-bottom:0; }
-.rm-match-num { color:rgba(255,255,255,.45); font-size:13px; font-weight:700; font-family:monospace; }
-.rm-match-date { color:rgba(255,255,255,.7); font-size:14px; }
-.rm-match-month { color:#93c5fd; font-size:13px; font-weight:700; }
+.rm-match-num { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
+.rm-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
 .rm-match-item { color:#fff; font-size:14px; font-weight:700; word-break:break-all; line-height:1.4; }
 .rm-match-sub { color:rgba(255,255,255,.55); font-size:13px; word-break:break-all; line-height:1.4; margin-top:2px; }
 .rm-match-amt { color:#fbbf24; font-weight:700; font-size:15px; text-align:right; }
-.rm-match-badge { font-size:13px; font-weight:700; border-radius:4px; padding:3px 8px; white-space:nowrap; display:inline-block; text-align:center; }
+.rm-match-badge { font-size:13px; font-weight:700; border-radius:4px; padding:3px 8px; white-space:nowrap; display:inline-block; text-align:center; justify-self:center; }
 .rm-match-badge.ok  { background:#16a34a33; color:#4ade80; border:1px solid #4ade8066; }
 .rm-match-badge.err { background:#dc262633; color:#f87171; border:1px solid #f8717166; }
 .rm-match-badge.wait{ background:#d9770633; color:#fbbf24; border:1px solid #fbbf2466; }
 .rm-match-badge.none{ background:rgba(255,255,255,.08); color:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.2); }
-/* AI 核對說明：完整顯示，自動換行 */
-.rm-match-reason { color:rgba(255,255,255,.78); font-size:13px; line-height:1.5; white-space:normal; word-break:break-all; overflow-wrap:break-word; }
+/* AI 核對說明：完整顯示，保留換行，不破壞中英文單字 */
+.rm-match-reason { color:rgba(255,255,255,.85); font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; overflow-wrap:break-word; }
 .rm-no-match { color:rgba(255,255,255,.3); font-size:13px; font-style:italic; text-align:center; padding:3px 0; }
 /* ── History Panel ── */
 .hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:3000; }
@@ -677,25 +674,22 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 /* 歷史圖片底部明細欄 */
 .hist-match-bar { background:rgba(0,0,0,.45); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; width:100%; }
 .hist-match-bar-title { color:rgba(255,255,255,.5); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
-/* 欄位標題列（# / 月份 / 日期 / 主項目 / 金額 / 結果 / AI 核對說明） */
-.hist-match-head { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.55); font-size:12px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; }
-.hist-match-head > span { white-space:nowrap; }
-.hist-match-head .hmh-amt { text-align:right; }
-.hist-match-head .hmh-result { text-align:center; }
-.hist-match-row { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:7px 10px; margin-bottom:4px; }
+/* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
+.hist-match-head { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.hist-match-head > span { white-space:nowrap; text-align:center; }
+.hist-match-row { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:8px 10px; margin-bottom:4px; }
 .hist-match-row:last-child { margin-bottom:0; }
-.hist-match-num  { color:rgba(255,255,255,.45); font-size:13px; font-weight:700; font-family:monospace; }
-.hist-match-month { color:#93c5fd; font-size:13px; font-weight:700; }
-.hist-match-date { color:rgba(255,255,255,.7); font-size:14px; }
+.hist-match-num  { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
+.hist-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
 .hist-match-item { color:#fff; font-size:14px; font-weight:700; word-break:break-all; line-height:1.4; }
 .hist-match-sub  { color:rgba(255,255,255,.55); font-size:13px; word-break:break-all; line-height:1.4; margin-top:2px; }
 .hist-match-amt  { color:#fbbf24; font-weight:700; font-size:15px; text-align:right; }
-.hist-match-badge { font-size:13px; font-weight:700; border-radius:4px; padding:3px 8px; white-space:nowrap; display:inline-block; text-align:center; }
+.hist-match-badge { font-size:13px; font-weight:700; border-radius:4px; padding:3px 8px; white-space:nowrap; display:inline-block; text-align:center; justify-self:center; }
 .hist-match-badge.ok   { background:#16a34a33; color:#4ade80; border:1px solid #4ade8066; }
 .hist-match-badge.err  { background:#dc262633; color:#f87171; border:1px solid #f8717166; }
 .hist-match-badge.wait { background:#d9770633; color:#fbbf24; border:1px solid #fbbf2466; }
 .hist-match-badge.none { background:rgba(255,255,255,.08); color:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.2); }
-.hist-match-reason { color:rgba(255,255,255,.78); font-size:13px; line-height:1.5; white-space:normal; word-break:break-all; overflow-wrap:break-word; }
+.hist-match-reason { color:rgba(255,255,255,.85); font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; overflow-wrap:break-word; }
 .hist-no-match { color:rgba(255,255,255,.3); font-size:13px; font-style:italic; text-align:center; padding:3px 0; }
 /* 歷史紀錄憑證視窗的「手動修改狀態」按鈕（每筆明細列右側 4 個按鈕） */
 .hist-row-status-btns { display:inline-flex; gap:3px; align-items:center; margin-left:4px; }
@@ -3726,6 +3720,22 @@ function selectMonthFromDropdown(key) {
   const si = document.getElementById("searchInput"); if (si) si.value = "";
   const sc = document.getElementById("searchClear"); if (sc) sc.classList.remove("show");
   renderTable(); renderStats();
+  // ★ Plan B：若當前是子任務（parentSessionId 非空）且月份標籤還是預設名稱，
+  //    則改用使用者選的月份名稱（例如「4月」、「5月」）
+  try {
+    const sess = (typeof __activeSession === 'function') ? __activeSession() : null;
+    if (sess && sess.parentSessionId) {
+      const placeholderLabels = ['新月份', '月份', '未命名', '', null, undefined];
+      if (placeholderLabels.includes(sess.monthLabel)) {
+        sess.monthLabel = String(key);
+        if (typeof __saveSessionsList === 'function') __saveSessionsList();
+        // 更新標題
+        const label = document.getElementById('workPageClientLabel');
+        if (label) label.textContent = `｜當前客戶：${__getDisplayName(sess)}`;
+        if (typeof renderWorkAuditingPanel === 'function') renderWorkAuditingPanel();
+      }
+    }
+  } catch(_){}
 }
 
 function selectSheet(n) {
@@ -4359,6 +4369,23 @@ function filterVouchers(f, btn) {
 // ── Receipt Modal (table row image viewer) ──
 let receiptModalIdx = -1;  // 目前 modal 顯示的憑證在 vouchers 陣列中的索引
 
+// ── 格式化 AI 核對說明：保留分隔，自動加換行（在 [標籤]、；、→ 處）──
+function _formatAIReason(text) {
+  if (!text) return '—';
+  let s = String(text);
+  // 先 HTML escape，避免 < > & 等字元被當成 tag
+  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // 在 ] 或 】 後面加換行（例如 [三聯式統一發票]）
+  s = s.replace(/(\]|】)\s*/g, '$1\n');
+  // 在 ； 後面加換行
+  s = s.replace(/；\s*/g, '；\n');
+  // → 之前加換行（讓「→ 請人工確認」獨立成行）
+  s = s.replace(/\s*→\s*/g, '\n→ ');
+  // 把連續換行壓成一個，並去掉前後空白
+  s = s.replace(/\n+/g, '\n').replace(/^\s+|\s+$/g, '');
+  return s;
+}
+
 // ── 渲染憑證圖片底部「對應支出明細」列 ──
 function renderReceiptMatchBar(voucherIdx) {
   const content = document.getElementById('rmMatchContent');
@@ -4461,14 +4488,13 @@ function renderReceiptMatchBar(voucherIdx) {
     return;
   }
 
-  // ── 表頭（欄位標籤）──
+  // ── 表頭（欄位標籤，全部置中）──
   const headerHtml = `<div class="rm-match-head">
     <span>#</span>
-    <span>月份</span>
     <span>日期</span>
     <span>主項目</span>
-    <span class="rmh-amt">金額</span>
-    <span class="rmh-result">結果</span>
+    <span>金額</span>
+    <span>結果</span>
     <span>AI 核對說明</span>
   </div>`;
 
@@ -4478,24 +4504,17 @@ function renderReceiptMatchBar(voucherIdx) {
     const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
     const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '—';
     const dateStr  = r.payDate || r.date || '';
-    // ★ 月份：從日期 (例如 "4/30" 或 "2026-04-30") 抓「X月」
-    let monthStr = '';
-    const m1 = (dateStr || '').match(/^(\d{1,2})\//);
-    const m2 = (dateStr || '').match(/^\d{4}[-/](\d{1,2})/);
-    if (m1) monthStr = parseInt(m1[1], 10) + '月';
-    else if (m2) monthStr = parseInt(m2[1], 10) + '月';
     const mainItem = r.mainItem || '';
     const sub      = (r.subItem || r.remark || '');
-    const reason   = chk.aiReason || '';  // ★ 完整顯示，不截斷
+    const reason   = _formatAIReason(chk.aiReason || '');
 
     return `<div class="rm-match-row" style="cursor:pointer" onclick="rmSelectRow(${fi},${voucherIdx})">
       <input type="text" value="${displayNum}" title="列號（可修正）"
-        style="width:42px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fff;font-size:13px;font-weight:700;padding:2px 4px;text-align:center;cursor:text"
+        style="width:42px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fff;font-size:13px;font-weight:700;padding:2px 4px;text-align:center;cursor:text;justify-self:center"
         onclick="event.stopPropagation()"
         onchange="rmCorrectRowNum('${corrKey}',this.value,${voucherIdx})">
-      <span class="rm-match-month">${monthStr}</span>
       <input type="text" value="${dateStr}" title="日期（可修正）"
-        style="width:80px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#d1fae5;font-size:13px;padding:2px 4px;text-align:center;cursor:text"
+        style="width:90px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#d1fae5;font-size:13px;padding:2px 4px;text-align:center;cursor:text;justify-self:center"
         onclick="event.stopPropagation()"
         onchange="rmCorrectDate('${corrKey}',this.value,${fi},${voucherIdx})">
       <div>
@@ -4503,11 +4522,11 @@ function renderReceiptMatchBar(voucherIdx) {
         ${sub ? `<div class="rm-match-sub">${sub}</div>` : ''}
       </div>
       <input type="number" value="${amt||''}" title="金額（可修正）"
-        style="width:84px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fbbf24;font-size:15px;font-weight:700;padding:2px 4px;text-align:right;cursor:text"
+        style="width:92px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fbbf24;font-size:15px;font-weight:700;padding:2px 4px;text-align:right;cursor:text;justify-self:end"
         onclick="event.stopPropagation()"
         onchange="rmCorrectAmount('${corrKey}',this.value,${fi},${voucherIdx})">
       <span class="rm-match-badge ${badgeCls}">${badgeLabel}</span>
-      <span class="rm-match-reason">${reason || '—'}</span>
+      <span class="rm-match-reason">${reason}</span>
     </div>`;
   }).join('');
 
@@ -7599,14 +7618,13 @@ function renderHistMatchBar(voucherName, histId) {
   }
 
   const safeVName = String(voucherName || '').replace(/'/g, "\\'");
-  // 表頭
+  // 表頭（全部置中）
   const headerHtml = `<div class="hist-match-head">
     <span>#</span>
-    <span>月份</span>
     <span>日期</span>
     <span>主項目</span>
-    <span class="hmh-amt">金額</span>
-    <span class="hmh-result">結果</span>
+    <span>金額</span>
+    <span>結果</span>
     <span>AI 核對說明</span>
   </div>`;
   const rowsHtml = matchedRowsWithIdx.map(({ row: r, rowIdx }) => {
@@ -7614,20 +7632,12 @@ function renderHistMatchBar(voucherName, histId) {
     const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
     const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '— 未匹配';
     const sub = (r.subItem || '');
-    const reason = r.aiReason || '';  // ★ 完整顯示，不截斷
+    const reason = _formatAIReason(r.aiReason || '');
     const amt = r.amount || 0;
     const rowNum = r.excelRow || (r.idx != null ? r.idx + 1 : '?');
     const dateStr = r.date || '';
-    // ★ 月份：從日期字串取
-    let monthStr = '';
-    const m1 = dateStr.match(/^(\d{1,2})\//);
-    const m2 = dateStr.match(/^\d{4}[-/](\d{1,2})/);
-    if (m1) monthStr = parseInt(m1[1], 10) + '月';
-    else if (m2) monthStr = parseInt(m2[1], 10) + '月';
-    // 點擊狀態徽章 → 開啟 openHistStatusPicker 彈窗修改（取代原本右側 4 個快速切換小按鈕）
     return `<div class="hist-match-row">
       <span class="hist-match-num" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改 # 行號" onclick="editHistMatchField(${histId},${rowIdx},'excelRow',this,'${safeVName}')">#${rowNum}</span>
-      <span class="hist-match-month">${monthStr}</span>
       <span class="hist-match-date" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改日期" onclick="editHistMatchField(${histId},${rowIdx},'date',this,'${safeVName}')">${dateStr}</span>
       <div>
         <div class="hist-match-item">${r.mainItem || ''}</div>
@@ -7635,7 +7645,7 @@ function renderHistMatchBar(voucherName, histId) {
       </div>
       <span class="hist-match-amt">${amt ? amt.toLocaleString() : ''}</span>
       <span class="hist-match-badge ${badgeCls}" style="cursor:pointer" title="點擊修改核對結果" onclick="event.stopPropagation();openHistStatusPicker(${histId},${rowIdx},'${safeVName}')">${badgeLabel}</span>
-      <span class="hist-match-reason">${reason || '—'}</span>
+      <span class="hist-match-reason">${reason}</span>
     </div>`;
   }).join('');
   content.innerHTML = headerHtml + rowsHtml;
