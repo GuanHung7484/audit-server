@@ -927,6 +927,15 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .cp-card-actions button:hover { background: #d4a258; color: #4a1d05; }
 .cp-card-actions .cp-del { color: #b91c1c; border-color: #f3a4ad; }
 .cp-card-actions .cp-del:hover { background: #b91c1c; color: #fff; border-color: #b91c1c; }
+/* 客戶卡片 — AI 進度條 */
+.cp-card-progress { width: 100%; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
+.cp-card-progress-text { font-size: 11px; font-weight: 700; color: #1f4e79; text-align: center; letter-spacing: .3px; }
+.cp-card-progress-bar-wrap { width: 100%; background: #e5e7eb; border-radius: 6px; height: 8px; overflow: hidden; }
+.cp-card-progress-bar { height: 100%; background: linear-gradient(90deg, #38a169, #68d391); border-radius: 6px; transition: width .35s ease; }
+.cp-card-done { font-size: 11px; font-weight: 700; color: #16a34a; text-align: center; margin-top: 4px; }
+.cp-card.is-auditing { border-color: #38a169; box-shadow: 0 0 0 2px rgba(56,161,105,.15); }
+.cp-card.is-auditing::before { content: ""; position: absolute; top: 8px; left: 8px; width: 8px; height: 8px; background: #38a169; border-radius: 50%; animation: cpPulse 1.4s infinite; }
+@keyframes cpPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(1.4); } }
 
 .cp-empty { padding: 60px 20px; text-align: center; color: #8a6e4a; font-size: 15px; grid-column: 1 / -1; }
 
@@ -2172,17 +2181,30 @@ function wkDeleteHistEntry(id) {
 let __cpPage = 1;
 const CP_PAGE_SIZE = 20;
 
+let __cpRefreshTimer = null;
 function openClientPicker() {
   __cpPage = 1;
   const ov = document.getElementById('cpOverlay');
   if (!ov) return;
   ov.classList.add('open');
   cpRenderList();
+  // ★ 開啟時自動刷新進度（每 1.5 秒）— 讓使用者看到其他客戶 AI 匹配進度即時更新
+  if (__cpRefreshTimer) clearInterval(__cpRefreshTimer);
+  __cpRefreshTimer = setInterval(() => {
+    const ov2 = document.getElementById('cpOverlay');
+    if (!ov2 || !ov2.classList.contains('open')) {
+      clearInterval(__cpRefreshTimer); __cpRefreshTimer = null; return;
+    }
+    // 只有任一 session 正在審核中才需要刷新（節省效能）
+    const sessions = (typeof __sessions !== 'undefined' && Array.isArray(__sessions)) ? __sessions : [];
+    if (sessions.some(s => s.auditing)) cpRenderList();
+  }, 1500);
 }
 
 function closeClientPicker() {
   const ov = document.getElementById('cpOverlay');
   if (ov) ov.classList.remove('open');
+  if (__cpRefreshTimer) { clearInterval(__cpRefreshTimer); __cpRefreshTimer = null; }
 }
 
 function cpRenderList() {
@@ -2234,9 +2256,31 @@ function cpRenderList() {
     const delBtn = isLocked
       ? ''
       : `<button class="cp-del" onclick="event.stopPropagation();cpDeleteClient('${s.id}')" title="刪除此客戶">🗑️</button>`;
-    return `<div class="cp-card ${isLocked?'locked':''}" onclick="cpSelectClient('${s.id}')" title="點擊進入${safeName}的匹配作業">
+
+    // ★ AI 匹配進度顯示
+    let progressHtml = '';
+    const isAuditing = !!s.auditing;
+    if (isAuditing && (s.auditTotal || 0) > 0) {
+      const cur = s.auditCurrent || 0;
+      const tot = s.auditTotal || 0;
+      const pct = tot > 0 ? Math.min(100, Math.round(cur / tot * 100)) : 0;
+      progressHtml = `
+        <div class="cp-card-progress">
+          <div class="cp-card-progress-text">🤖 AI 匹配中 ${cur} / ${tot} (${pct}%)</div>
+          <div class="cp-card-progress-bar-wrap">
+            <div class="cp-card-progress-bar" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+    } else if (isAuditing) {
+      progressHtml = `<div class="cp-card-progress"><div class="cp-card-progress-text">🤖 準備中...</div></div>`;
+    } else if (s.hasResults) {
+      progressHtml = `<div class="cp-card-done">✅ 已完成匹配</div>`;
+    }
+
+    return `<div class="cp-card ${isLocked?'locked':''} ${isAuditing?'is-auditing':''}" onclick="cpSelectClient('${s.id}')" title="點擊進入${safeName}的匹配作業">
       <div class="cp-card-avatar">${businessmanSvg()}</div>
       <div class="cp-card-name">${s.name || '未命名'}</div>
+      ${progressHtml}
       <div class="cp-card-actions">${editBtn}${delBtn}</div>
     </div>`;
   }).join('');
