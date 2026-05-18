@@ -1235,6 +1235,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
       <div class="tb-toolbar">
         <span class="tb-profile-name" id="tbProfileName" onclick="showProfileTip()" title="點擊修改查帳人員姓名"></span>
         <button class="tb-icon-btn" title="個人資料" onclick="showProfileTip()">👤</button>
+        <button class="tb-icon-btn" title="修改密碼" onclick="showChangePwdModal()" style="color:#e6b890;border-color:#e6b890;">🔑</button>
         <button class="tb-icon-btn tb-icon-logout" title="登出" onclick="doLogout()">➡️</button>
         <!-- 保留隱藏，相容舊程式碼 -->
         <input type="text" id="tbHistSearch" style="display:none" oninput="ovSearchHistory(this.value)">
@@ -8249,7 +8250,86 @@ document.addEventListener("keydown", e => {
 function scrollToRow(idx) { const trs = document.querySelectorAll("#tableScroll tbody tr"); if(trs[idx]) trs[idx].scrollIntoView({block:"nearest"}); }
 function doLogout() {
   if (!confirm("確定要登出嗎？")) return;
-  window.location.href = "index.html";
+  localStorage.removeItem('audit_token');
+  localStorage.removeItem('audit_user');
+  window.location.href = '/';
+}
+
+// ── 修改密碼 Modal ─────────────────────────────────────────
+function showChangePwdModal() {
+  if (document.getElementById('changePwdModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'changePwdModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:#fff7ec;border:2px solid #d4a258;border-radius:18px;padding:36px 40px 32px;width:380px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.4);font-family:inherit">
+      <div style="font-size:20px;font-weight:900;color:#3a1f08;margin-bottom:24px">🔑 修改密碼</div>
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:13px;font-weight:800;color:#5b2c0c;margin-bottom:6px">舊密碼</label>
+        <input id="cpOldPwd" type="password" placeholder="請輸入目前密碼"
+          style="width:100%;padding:10px 13px;border:2px solid #f0d9b0;border-radius:8px;font-size:15px;font-family:inherit;color:#3a1f08;background:#fffaf1;outline:none">
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:13px;font-weight:800;color:#5b2c0c;margin-bottom:6px">新密碼</label>
+        <input id="cpNewPwd" type="password" placeholder="新密碼（至少 6 字元）"
+          style="width:100%;padding:10px 13px;border:2px solid #f0d9b0;border-radius:8px;font-size:15px;font-family:inherit;color:#3a1f08;background:#fffaf1;outline:none">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:13px;font-weight:800;color:#5b2c0c;margin-bottom:6px">確認新密碼</label>
+        <input id="cpConfirmPwd" type="password" placeholder="再輸入一次新密碼"
+          style="width:100%;padding:10px 13px;border:2px solid #f0d9b0;border-radius:8px;font-size:15px;font-family:inherit;color:#3a1f08;background:#fffaf1;outline:none">
+      </div>
+      <div id="cpErrMsg" style="color:#b91c1c;font-size:13px;font-weight:700;margin-bottom:12px;display:none"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="doChangePwd()"
+          style="flex:1;padding:12px;background:#4a1d05;color:#f4d896;border:2px solid #d4a258;border-radius:9px;font-size:15px;font-family:inherit;font-weight:800;cursor:pointer">
+          確認修改
+        </button>
+        <button onclick="document.getElementById('changePwdModal').remove()"
+          style="flex:1;padding:12px;background:#f0d9b0;color:#3a1f08;border:2px solid #d4a258;border-radius:9px;font-size:15px;font-family:inherit;font-weight:800;cursor:pointer">
+          取消
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  // 點背景關閉
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.getElementById('cpOldPwd').focus();
+}
+
+async function doChangePwd() {
+  const oldPwd     = document.getElementById('cpOldPwd').value;
+  const newPwd     = document.getElementById('cpNewPwd').value;
+  const confirmPwd = document.getElementById('cpConfirmPwd').value;
+  const errEl      = document.getElementById('cpErrMsg');
+  errEl.style.display = 'none';
+
+  if (!oldPwd || !newPwd || !confirmPwd) {
+    errEl.textContent = '請填寫所有欄位'; errEl.style.display = 'block'; return;
+  }
+  if (newPwd.length < 6) {
+    errEl.textContent = '新密碼至少 6 字元'; errEl.style.display = 'block'; return;
+  }
+  if (newPwd !== confirmPwd) {
+    errEl.textContent = '兩次新密碼不一致'; errEl.style.display = 'block'; return;
+  }
+
+  try {
+    const token = localStorage.getItem('audit_token');
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd }),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '修改失敗'; errEl.style.display = 'block'; return; }
+    alert('✅ 密碼修改成功！請重新登入。');
+    localStorage.removeItem('audit_token');
+    localStorage.removeItem('audit_user');
+    window.location.href = '/';
+  } catch(e) {
+    errEl.textContent = '網路錯誤，請稍後再試'; errEl.style.display = 'block';
+  }
 }
 
 function showPageGuide() {
