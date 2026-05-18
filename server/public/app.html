@@ -675,22 +675,28 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-img-title { color:#fff; font-size:14px; font-weight:700; text-align:center; }
 #histImgContent { overflow:auto; max-height:58vh; display:flex; align-items:flex-start; justify-content:center; }
 /* 歷史圖片底部明細欄 */
-.hist-match-bar { background:rgba(0,0,0,.45); border-radius:8px; padding:7px 12px 5px; box-sizing:border-box; width:100%; }
-.hist-match-bar-title { color:rgba(255,255,255,.5); font-size:11px; font-weight:700; letter-spacing:.5px; margin-bottom:4px; }
-.hist-match-row { display:flex; gap:7px; align-items:center; background:rgba(255,255,255,.06); border-radius:6px; padding:4px 9px; margin-bottom:3px; flex-wrap:wrap; }
+.hist-match-bar { background:rgba(0,0,0,.45); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; width:100%; }
+.hist-match-bar-title { color:rgba(255,255,255,.5); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
+/* 欄位標題列（# / 月份 / 日期 / 主項目 / 金額 / 結果 / AI 核對說明） */
+.hist-match-head { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.55); font-size:12px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; }
+.hist-match-head > span { white-space:nowrap; }
+.hist-match-head .hmh-amt { text-align:right; }
+.hist-match-head .hmh-result { text-align:center; }
+.hist-match-row { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:7px 10px; margin-bottom:4px; }
 .hist-match-row:last-child { margin-bottom:0; }
-.hist-match-num  { color:rgba(255,255,255,.4); font-size:11px; font-weight:700; min-width:32px; font-family:monospace; }
-.hist-match-date { color:rgba(255,255,255,.65); font-size:12px; min-width:38px; }
-.hist-match-item { color:#fff; font-size:12px; font-weight:700; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.hist-match-sub  { color:rgba(255,255,255,.45); font-size:11px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.hist-match-amt  { color:#fbbf24; font-weight:700; font-size:13px; min-width:56px; text-align:right; }
-.hist-match-badge { font-size:11px; font-weight:700; border-radius:4px; padding:2px 7px; white-space:nowrap; }
+.hist-match-num  { color:rgba(255,255,255,.45); font-size:13px; font-weight:700; font-family:monospace; }
+.hist-match-month { color:#93c5fd; font-size:13px; font-weight:700; }
+.hist-match-date { color:rgba(255,255,255,.7); font-size:14px; }
+.hist-match-item { color:#fff; font-size:14px; font-weight:700; word-break:break-all; line-height:1.4; }
+.hist-match-sub  { color:rgba(255,255,255,.55); font-size:13px; word-break:break-all; line-height:1.4; margin-top:2px; }
+.hist-match-amt  { color:#fbbf24; font-weight:700; font-size:15px; text-align:right; }
+.hist-match-badge { font-size:13px; font-weight:700; border-radius:4px; padding:3px 8px; white-space:nowrap; display:inline-block; text-align:center; }
 .hist-match-badge.ok   { background:#16a34a33; color:#4ade80; border:1px solid #4ade8066; }
 .hist-match-badge.err  { background:#dc262633; color:#f87171; border:1px solid #f8717166; }
 .hist-match-badge.wait { background:#d9770633; color:#fbbf24; border:1px solid #fbbf2466; }
 .hist-match-badge.none { background:rgba(255,255,255,.08); color:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.2); }
-.hist-match-reason { color:rgba(255,255,255,.4); font-size:11px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.hist-no-match { color:rgba(255,255,255,.3); font-size:12px; font-style:italic; text-align:center; padding:3px 0; }
+.hist-match-reason { color:rgba(255,255,255,.78); font-size:13px; line-height:1.5; white-space:normal; word-break:break-all; overflow-wrap:break-word; }
+.hist-no-match { color:rgba(255,255,255,.3); font-size:13px; font-style:italic; text-align:center; padding:3px 0; }
 /* 歷史紀錄憑證視窗的「手動修改狀態」按鈕（每筆明細列右側 4 個按鈕） */
 .hist-row-status-btns { display:inline-flex; gap:3px; align-items:center; margin-left:4px; }
 .hist-row-status-btns .hrsb {
@@ -946,16 +952,20 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 @keyframes cpPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(1.4); } }
 /* 客戶卡片內的子任務（月份）列 */
 .cp-card-children { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 5px; border-top: 1px dashed #e2c896; padding-top: 8px; }
-.cp-child-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 8px; align-items: center; background: #fffdf6; border: 1px solid #f0d9b0; border-radius: 8px; padding: 6px 9px; cursor: pointer; transition: border-color .15s, background .15s; }
+.cp-child-row { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; background: #fffdf6; border: 1px solid #f0d9b0; border-radius: 8px; padding: 18px 9px 8px; cursor: pointer; transition: border-color .15s, background .15s; }
 .cp-child-row:hover { border-color: #d4a258; background: #fff8e6; }
 .cp-child-row.is-auditing { border-color: #38a169; background: #f0fdf4; }
 .cp-child-month { font-size: 12px; font-weight: 800; color: #1f4e79; min-width: 36px; }
 .cp-child-status { font-size: 11px; color: #5b2c0c; font-weight: 700; text-align: left; }
 .cp-child-bar-wrap { width: 60px; background: #e5e7eb; border-radius: 5px; height: 6px; overflow: hidden; }
 .cp-child-bar { height: 100%; background: linear-gradient(90deg, #38a169, #68d391); border-radius: 5px; transition: width .35s ease; }
-.cp-child-del { background: transparent; border: 1px solid #f3a4ad; color: #b91c1c; border-radius: 5px; width: 22px; height: 22px; font-size: 11px; cursor: pointer; padding: 0; display: grid; place-items: center; opacity: .5; transition: opacity .15s, background .15s; }
-.cp-child-row:hover .cp-child-del { opacity: 1; }
-.cp-child-del:hover { background: #b91c1c; color: #fff; }
+/* 子任務右上角的編輯與刪除按鈕（與父卡片的「pencil」icon 視覺對齊） */
+.cp-child-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 3px; opacity: .6; transition: opacity .15s; }
+.cp-child-row:hover .cp-child-actions { opacity: 1; }
+.cp-child-actions button { background: rgba(255,255,255,.95); border: 1px solid #d4a258; color: #5b2c0c; border-radius: 5px; width: 22px; height: 22px; font-size: 11px; cursor: pointer; font-family: inherit; padding: 0; display: grid; place-items: center; transition: background .15s; }
+.cp-child-actions button:hover { background: #d4a258; color: #4a1d05; }
+.cp-child-actions .cp-child-del { color: #b91c1c; border-color: #f3a4ad; }
+.cp-child-actions .cp-child-del:hover { background: #b91c1c; color: #fff; border-color: #b91c1c; }
 /* Q5：匹配作業頁「分析中」面板（顯示所有正在 AI 匹配的客戶/月份） */
 .wp-audit-panel { display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#fff8e6; border:1.5px solid #d4a258; border-radius:10px; padding:6px 12px; box-shadow:0 1px 3px rgba(91,44,12,.08); }
 .wp-audit-panel-title { font-size:11px; font-weight:800; color:#5b2c0c; letter-spacing:.4px; display:flex; align-items:center; gap:5px; padding-right:6px; border-right:1px solid #e2c896; }
@@ -1840,6 +1850,18 @@ let __currentPage = 'overview'; // 預設首頁 = 總覽
 let __historyTargetId = null;    // 單筆紀錄檢視模式：若有值，歷史頁只顯示這一筆
 function switchToPage(name) {
   __currentPage = name;
+  // ★ 切換頁面時，根據新頁面決定 AI 智慧審核中浮動視窗是否顯示
+  try {
+    if (typeof showAuditProgress === 'function') {
+      if (name === 'work') {
+        const sess = (typeof __activeSession === 'function') ? __activeSession() : null;
+        if (sess && sess.auditing) showAuditProgress(true, sess.auditCurrent, sess.auditTotal, sess.auditMsg);
+        else showAuditProgress(false);
+      } else {
+        showAuditProgress(false);
+      }
+    }
+  } catch(_){}
   const ov = document.getElementById('pageOverview');
   const wk = document.getElementById('pageWork');
   const hp = document.getElementById('pageHistory');
@@ -2334,10 +2356,13 @@ function cpRenderList() {
         const cBarHtml = cAuditing && cTot > 0
           ? `<div class="cp-child-bar-wrap"><div class="cp-child-bar" style="width:${cPct}%"></div></div>` : '';
         return `<div class="cp-child-row ${cAuditing?'is-auditing':''}" onclick="event.stopPropagation();cpSelectClient('${c.id}')" title="切換到 ${c.monthLabel || '此月份'}">
+          <div class="cp-child-actions">
+            <button class="cp-child-edit" onclick="event.stopPropagation();cpEditChildLabel('${c.id}')" title="重新命名月份">✏️</button>
+            <button class="cp-child-del" onclick="event.stopPropagation();cpDeleteClient('${c.id}')" title="刪除此月份任務">🗑️</button>
+          </div>
           <span class="cp-child-month">${c.monthLabel || '月份'}</span>
           <span class="cp-child-status">${cStatusText}</span>
           ${cBarHtml}
-          <button class="cp-child-del" onclick="event.stopPropagation();cpDeleteClient('${c.id}')" title="刪除此月份任務">🗑️</button>
         </div>`;
       }).join('') + `</div>`;
     }
@@ -2440,6 +2465,28 @@ function cpEditClient(id) {
     cpRenderList();
     showToast(`✅ 已將「${oldName}」改名為「${trimmed}」`);
   }
+}
+
+// 重新命名子任務的月份標籤（例如「新月份」→「5月」）
+function cpEditChildLabel(id) {
+  const sess = __sessions.find(s => s.id === id);
+  if (!sess || !sess.parentSessionId) return;
+  const newLabel = prompt('修改月份名稱（例如「5月」、「2026-05」）：', sess.monthLabel || '');
+  if (newLabel == null) return;
+  const trimmed = newLabel.trim();
+  if (!trimmed) { alert('月份名稱不能為空'); return; }
+  sess.monthLabel = trimmed;
+  __saveSessionsList();
+  cpRenderList();
+  try { if (typeof renderWorkAuditingPanel === 'function') renderWorkAuditingPanel(); } catch(_){}
+  // 若當前 active 就是這個子任務，更新標題
+  try {
+    if (id === __activeSessionId) {
+      const label = document.getElementById('workPageClientLabel');
+      if (label) label.textContent = `｜當前客戶：${__getDisplayName(sess)}`;
+    }
+  } catch(_){}
+  showToast('✅ 已重新命名月份');
 }
 
 // 刪除客戶
@@ -6333,7 +6380,10 @@ function monthsMatch(invoiceDate, excelDate) {
 // ── Audit Progress Overlay ──
 function showAuditProgress(show, current, total, msg) {
   const el = document.getElementById('auditProgressOverlay');
-  if (!show) {
+  if (!el) return;
+  // ★ 只在「匹配作業頁」(work) 顯示，總覽/歷史/其他頁面都隱藏
+  const onWorkPage = (typeof __currentPage !== 'undefined') ? (__currentPage === 'work') : true;
+  if (!show || !onWorkPage) {
     el.classList.remove('show');
     // 重置暫停按鈕狀態
     const pBtn = document.getElementById('auditPauseBtn');
@@ -7549,27 +7599,46 @@ function renderHistMatchBar(voucherName, histId) {
   }
 
   const safeVName = String(voucherName || '').replace(/'/g, "\\'");
-  content.innerHTML = matchedRowsWithIdx.map(({ row: r, rowIdx }) => {
+  // 表頭
+  const headerHtml = `<div class="hist-match-head">
+    <span>#</span>
+    <span>月份</span>
+    <span>日期</span>
+    <span>主項目</span>
+    <span class="hmh-amt">金額</span>
+    <span class="hmh-result">結果</span>
+    <span>AI 核對說明</span>
+  </div>`;
+  const rowsHtml = matchedRowsWithIdx.map(({ row: r, rowIdx }) => {
     const status = r.status || '';
     const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
     const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '— 未匹配';
     const sub = (r.subItem || '');
-    const subShort = sub.length > 20 ? sub.slice(0, 20) + '…' : sub;
-    const reason = r.aiReason || '';
-    const reasonShort = reason.length > 50 ? reason.slice(0, 50) + '…' : reason;
+    const reason = r.aiReason || '';  // ★ 完整顯示，不截斷
     const amt = r.amount || 0;
     const rowNum = r.excelRow || (r.idx != null ? r.idx + 1 : '?');
+    const dateStr = r.date || '';
+    // ★ 月份：從日期字串取
+    let monthStr = '';
+    const m1 = dateStr.match(/^(\d{1,2})\//);
+    const m2 = dateStr.match(/^\d{4}[-/](\d{1,2})/);
+    if (m1) monthStr = parseInt(m1[1], 10) + '月';
+    else if (m2) monthStr = parseInt(m2[1], 10) + '月';
     // 點擊狀態徽章 → 開啟 openHistStatusPicker 彈窗修改（取代原本右側 4 個快速切換小按鈕）
     return `<div class="hist-match-row">
       <span class="hist-match-num" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改 # 行號" onclick="editHistMatchField(${histId},${rowIdx},'excelRow',this,'${safeVName}')">#${rowNum}</span>
-      <span class="hist-match-date" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改日期" onclick="editHistMatchField(${histId},${rowIdx},'date',this,'${safeVName}')">${r.date || ''}</span>
-      <span class="hist-match-item" title="${r.mainItem || ''}">${r.mainItem || ''}</span>
-      ${subShort ? `<span class="hist-match-sub" title="${sub}">${subShort}</span>` : ''}
+      <span class="hist-match-month">${monthStr}</span>
+      <span class="hist-match-date" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改日期" onclick="editHistMatchField(${histId},${rowIdx},'date',this,'${safeVName}')">${dateStr}</span>
+      <div>
+        <div class="hist-match-item">${r.mainItem || ''}</div>
+        ${sub ? `<div class="hist-match-sub">${sub}</div>` : ''}
+      </div>
       <span class="hist-match-amt">${amt ? amt.toLocaleString() : ''}</span>
       <span class="hist-match-badge ${badgeCls}" style="cursor:pointer" title="點擊修改核對結果" onclick="event.stopPropagation();openHistStatusPicker(${histId},${rowIdx},'${safeVName}')">${badgeLabel}</span>
-      ${reasonShort ? `<span class="hist-match-reason" title="${reason}">${reasonShort}</span>` : ''}
+      <span class="hist-match-reason">${reason || '—'}</span>
     </div>`;
   }).join('');
+  content.innerHTML = headerHtml + rowsHtml;
 }
 
 // ════════════════════════════════════════════════════════════
