@@ -586,22 +586,30 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .rm-status-btn.rm-st-none { background:rgba(100,116,139,.4); border-color:rgba(148,163,184,.6); }
 .rm-status-btn.rm-st-none:hover { background:#64748b; }
 /* ── Receipt Modal Match Bar ── */
-.rm-match-bar { max-width:88vw; width:88vw; background:rgba(0,0,0,.6); border-radius:8px; padding:8px 14px 6px; box-sizing:border-box; margin-top:-4px; }
-.rm-match-bar-title { color:rgba(255,255,255,.55); font-size:11px; font-weight:700; letter-spacing:.5px; margin-bottom:5px; }
-.rm-match-row { display:flex; gap:8px; align-items:center; background:rgba(255,255,255,.07); border-radius:6px; padding:5px 10px; margin-bottom:3px; flex-wrap:wrap; cursor:default; }
+.rm-match-bar { max-width:88vw; width:88vw; background:rgba(0,0,0,.6); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; margin-top:-4px; }
+.rm-match-bar-title { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
+/* 欄位標題列（月份 / 日期 / 主項目 / 金額 / 結果 / AI 核對說明） */
+.rm-match-head { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.55); font-size:12px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; }
+.rm-match-head > span { white-space:nowrap; }
+.rm-match-head .rmh-amt { text-align:right; }
+.rm-match-head .rmh-result { text-align:center; }
+/* 資料列：改為 grid 配合上面 head；AI 核對說明可換行完整顯示 */
+.rm-match-row { display:grid; grid-template-columns:48px 64px 90px 1fr 90px 80px 1.6fr; gap:8px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:7px 10px; margin-bottom:4px; cursor:default; }
 .rm-match-row:last-child { margin-bottom:0; }
-.rm-match-num { color:rgba(255,255,255,.45); font-size:11px; font-weight:700; min-width:34px; font-family:monospace; }
-.rm-match-date { color:rgba(255,255,255,.7); font-size:12px; min-width:40px; }
-.rm-match-item { color:#fff; font-size:12px; font-weight:700; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rm-match-sub { color:rgba(255,255,255,.5); font-size:11px; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rm-match-amt { color:#fbbf24; font-weight:700; font-size:13px; min-width:60px; text-align:right; }
-.rm-match-badge { font-size:11px; font-weight:700; border-radius:4px; padding:2px 8px; white-space:nowrap; }
+.rm-match-num { color:rgba(255,255,255,.45); font-size:13px; font-weight:700; font-family:monospace; }
+.rm-match-date { color:rgba(255,255,255,.7); font-size:14px; }
+.rm-match-month { color:#93c5fd; font-size:13px; font-weight:700; }
+.rm-match-item { color:#fff; font-size:14px; font-weight:700; word-break:break-all; line-height:1.4; }
+.rm-match-sub { color:rgba(255,255,255,.55); font-size:13px; word-break:break-all; line-height:1.4; margin-top:2px; }
+.rm-match-amt { color:#fbbf24; font-weight:700; font-size:15px; text-align:right; }
+.rm-match-badge { font-size:13px; font-weight:700; border-radius:4px; padding:3px 8px; white-space:nowrap; display:inline-block; text-align:center; }
 .rm-match-badge.ok  { background:#16a34a33; color:#4ade80; border:1px solid #4ade8066; }
 .rm-match-badge.err { background:#dc262633; color:#f87171; border:1px solid #f8717166; }
 .rm-match-badge.wait{ background:#d9770633; color:#fbbf24; border:1px solid #fbbf2466; }
 .rm-match-badge.none{ background:rgba(255,255,255,.08); color:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.2); }
-.rm-match-reason { color:rgba(255,255,255,.45); font-size:11px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rm-no-match { color:rgba(255,255,255,.3); font-size:12px; font-style:italic; text-align:center; padding:3px 0; }
+/* AI 核對說明：完整顯示，自動換行 */
+.rm-match-reason { color:rgba(255,255,255,.78); font-size:13px; line-height:1.5; white-space:normal; word-break:break-all; overflow-wrap:break-word; }
+.rm-no-match { color:rgba(255,255,255,.3); font-size:13px; font-style:italic; text-align:center; padding:3px 0; }
 /* ── History Panel ── */
 .hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:3000; }
 .hist-overlay.open { display:flex; justify-content:flex-end; }
@@ -4188,41 +4196,57 @@ function renderReceiptMatchBar(voucherIdx) {
     return;
   }
 
-  content.innerHTML = matched.map(({ r, chk, displayNum, fi, corrKey }) => {
+  // ── 表頭（欄位標籤）──
+  const headerHtml = `<div class="rm-match-head">
+    <span>#</span>
+    <span>月份</span>
+    <span>日期</span>
+    <span>主項目</span>
+    <span class="rmh-amt">金額</span>
+    <span class="rmh-result">結果</span>
+    <span>AI 核對說明</span>
+  </div>`;
+
+  const rowsHtml = matched.map(({ r, chk, displayNum, fi, corrKey }) => {
     const amt = r.expense || r.income || 0;
     const status = chk.status || '';
     const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
     const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '—';
     const dateStr  = r.payDate || r.date || '';
+    // ★ 月份：從日期 (例如 "4/30" 或 "2026-04-30") 抓「X月」
+    let monthStr = '';
+    const m1 = (dateStr || '').match(/^(\d{1,2})\//);
+    const m2 = (dateStr || '').match(/^\d{4}[-/](\d{1,2})/);
+    if (m1) monthStr = parseInt(m1[1], 10) + '月';
+    else if (m2) monthStr = parseInt(m2[1], 10) + '月';
     const mainItem = r.mainItem || '';
     const sub      = (r.subItem || r.remark || '');
-    const subShort = sub.length > 22 ? sub.slice(0, 22) + '…' : sub;
-    const reason   = chk.aiReason || '';
-    const reasonShort = reason.length > 50 ? reason.slice(0, 50) + '…' : reason;
-
-    // ── 可編輯操作按鈕已移除（改用底部「人工修改狀態」統一管理）──
-    const actionBtns = '';
+    const reason   = chk.aiReason || '';  // ★ 完整顯示，不截斷
 
     return `<div class="rm-match-row" style="cursor:pointer" onclick="rmSelectRow(${fi},${voucherIdx})">
       <input type="text" value="${displayNum}" title="列號（可修正）"
-        style="width:38px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fff;font-size:11px;font-weight:700;padding:1px 4px;text-align:center;cursor:text"
+        style="width:42px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fff;font-size:13px;font-weight:700;padding:2px 4px;text-align:center;cursor:text"
         onclick="event.stopPropagation()"
         onchange="rmCorrectRowNum('${corrKey}',this.value,${voucherIdx})">
+      <span class="rm-match-month">${monthStr}</span>
       <input type="text" value="${dateStr}" title="日期（可修正）"
-        style="width:52px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#d1fae5;font-size:12px;padding:1px 4px;text-align:center;cursor:text"
+        style="width:80px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#d1fae5;font-size:13px;padding:2px 4px;text-align:center;cursor:text"
         onclick="event.stopPropagation()"
         onchange="rmCorrectDate('${corrKey}',this.value,${fi},${voucherIdx})">
-      <span class="rm-match-item" title="${mainItem}">${mainItem}</span>
-      ${subShort ? `<span class="rm-match-sub" title="${sub}">${subShort}</span>` : ''}
+      <div>
+        <div class="rm-match-item">${mainItem}</div>
+        ${sub ? `<div class="rm-match-sub">${sub}</div>` : ''}
+      </div>
       <input type="number" value="${amt||''}" title="金額（可修正）"
-        style="width:72px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fbbf24;font-size:13px;font-weight:700;padding:1px 4px;text-align:right;cursor:text"
+        style="width:84px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fbbf24;font-size:15px;font-weight:700;padding:2px 4px;text-align:right;cursor:text"
         onclick="event.stopPropagation()"
         onchange="rmCorrectAmount('${corrKey}',this.value,${fi},${voucherIdx})">
       <span class="rm-match-badge ${badgeCls}">${badgeLabel}</span>
-      ${reasonShort ? `<span class="rm-match-reason" title="${reason}">${reasonShort}</span>` : ''}
-      ${actionBtns}
+      <span class="rm-match-reason">${reason || '—'}</span>
     </div>`;
   }).join('');
+
+  content.innerHTML = headerHtml + rowsHtml;
 
   // 追加手動狀態修改列
   const vForStatus = vouchers[voucherIdx];
