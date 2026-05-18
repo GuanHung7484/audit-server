@@ -2879,9 +2879,14 @@ function __getTopLevelSessions() {
 }
 function __getDisplayName(s) {
   if (!s) return '';
+  // 子任務：「父名 / 月份」
   if (s.parentSessionId && s.monthLabel) {
     const parent = (Array.isArray(__sessions) ? __sessions : []).find(x => x.id === s.parentSessionId);
     return (parent ? parent.name : s.name) + ' / ' + s.monthLabel;
+  }
+  // 父客戶（頂層）：若有月份標籤也顯示「客戶名 / 月份」（與子任務格式統一）
+  if (s.monthLabel) {
+    return (s.name || '') + ' / ' + s.monthLabel;
   }
   return s.name || '';
 }
@@ -3720,19 +3725,24 @@ function selectMonthFromDropdown(key) {
   const si = document.getElementById("searchInput"); if (si) si.value = "";
   const sc = document.getElementById("searchClear"); if (sc) sc.classList.remove("show");
   renderTable(); renderStats();
-  // ★ Plan B：若當前是子任務（parentSessionId 非空）且月份標籤還是預設名稱，
-  //    則改用使用者選的月份名稱（例如「4月」、「5月」）
+  // ★ Plan B：選月份時自動更新 monthLabel（父客戶 / 子任務 都會更新，確保顯示格式統一）
   try {
     const sess = (typeof __activeSession === 'function') ? __activeSession() : null;
-    if (sess && sess.parentSessionId) {
+    if (sess) {
+      // 對於子任務：若還是預設標籤才覆寫，避免使用者改過名稱被重置
+      // 對於父客戶：永遠用新選的月份覆寫（父客戶沒有「使用者自訂標籤」的概念）
       const placeholderLabels = ['新月份', '月份', '未命名', '', null, undefined];
-      if (placeholderLabels.includes(sess.monthLabel)) {
+      const shouldUpdate = sess.parentSessionId
+        ? placeholderLabels.includes(sess.monthLabel)
+        : true;  // 父客戶永遠依當前選擇的月份顯示
+      if (shouldUpdate && sess.monthLabel !== String(key)) {
         sess.monthLabel = String(key);
         if (typeof __saveSessionsList === 'function') __saveSessionsList();
         // 更新標題
         const label = document.getElementById('workPageClientLabel');
         if (label) label.textContent = `｜當前客戶：${__getDisplayName(sess)}`;
         if (typeof renderWorkAuditingPanel === 'function') renderWorkAuditingPanel();
+        if (typeof cpRenderList === 'function') cpRenderList();
       }
     }
   } catch(_){}
