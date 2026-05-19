@@ -2309,22 +2309,24 @@ function cpRenderList() {
   // 保留 colorFor 簽名以維持與舊呼叫相容（已不使用回傳值）
   const colorFor = () => [MAIN_COLOR, SECOND_COLOR];
 
-  // 進度條 HTML 工具函式
+  // 進度條 HTML 工具函式（若父客戶有 monthLabel，會顯示在進度前面以與分析中面板格式一致）
   const _progressHtml = (s) => {
     const isAuditing = !!s.auditing;
+    const monthTag = s.monthLabel ? `<span style="color:#1f4e79;font-weight:800">[${s.monthLabel}]</span> ` : '';
     if (isAuditing && (s.auditTotal || 0) > 0) {
       const cur = s.auditCurrent || 0;
       const tot = s.auditTotal || 0;
       const pct = tot > 0 ? Math.min(100, Math.round(cur / tot * 100)) : 0;
       return `<div class="cp-card-progress">
-        <div class="cp-card-progress-text">🤖 AI 匹配中 ${cur} / ${tot} (${pct}%)</div>
+        <div class="cp-card-progress-text">${monthTag}🤖 AI 匹配中 ${cur} / ${tot} (${pct}%)</div>
         <div class="cp-card-progress-bar-wrap">
           <div class="cp-card-progress-bar" style="width:${pct}%"></div>
         </div>
       </div>`;
     }
-    if (isAuditing) return `<div class="cp-card-progress"><div class="cp-card-progress-text">🤖 準備中...</div></div>`;
-    if (s.hasResults) return `<div class="cp-card-done">✅ 已完成匹配</div>`;
+    if (isAuditing) return `<div class="cp-card-progress"><div class="cp-card-progress-text">${monthTag}🤖 準備中...</div></div>`;
+    if (s.hasResults) return `<div class="cp-card-done">${monthTag}✅ 已完成匹配</div>`;
+    if (s.monthLabel) return `<div class="cp-card-done" style="color:#5b2c0c;font-weight:700">${monthTag}⚪ 待匹配</div>`;
     return '';
   };
 
@@ -8632,7 +8634,23 @@ document.addEventListener("keydown", e => {
 });
 function scrollToRow(idx) { const trs = document.querySelectorAll("#tableScroll tbody tr"); if(trs[idx]) trs[idx].scrollIntoView({block:"nearest"}); }
 function doLogout() {
-  if (!confirm("確定要登出嗎？")) return;
+  if (!confirm("確定要登出嗎？\n\n📌 注意：登出後會清除選擇客戶面板上剛建立的「月份子任務」與暫存的匹配狀態。\n     （歷史審核記錄會完整保留，重新登入後可在「核對歷史」查看）")) return;
+  // ★ 清理：移除所有子任務（parentSessionId 不為空）；保留鎖定的預設客戶
+  try {
+    if (Array.isArray(__sessions)) {
+      // 1. 刪除所有子任務
+      __sessions = __sessions.filter(s => !s.parentSessionId);
+      // 2. 重置每個父客戶的 monthLabel / hasResults / auditing 狀態（這些不持久化的東西本來重登就會掉）
+      __sessions.forEach(s => {
+        s.monthLabel = null;
+        s.hasResults = false;
+        s.auditing = false;
+        s.auditCurrent = 0;
+        s.auditTotal = 0;
+      });
+      if (typeof __saveSessionsList === 'function') __saveSessionsList();
+    }
+  } catch(e) { console.warn('[logout] clean sessions error:', e); }
   localStorage.removeItem('audit_token');
   localStorage.removeItem('audit_user');
   window.location.href = '/';
