@@ -1403,7 +1403,9 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
         </div>
         <label style="cursor:pointer">
           <span class="wk-mini-btn gold" id="excelUploadBtnLabel" style="padding:10px 18px">更新支出明細</span>
-          <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="loadExcel(this.files[0])">
+          <input type="file" accept=".xlsx,.xls,.csv" style="display:none"
+            onclick="(function(e){ try { document.querySelectorAll('[data-mo],[data-nmd],#changePwdModal,#newMonthDialog').forEach(el=>el.remove()); e.target.value=''; } catch(_){} })(event)"
+            onchange="loadExcel(this.files[0])">
         </label>
       </div>
 
@@ -1421,7 +1423,9 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
         </div>
         <label style="cursor:pointer">
           <span class="wk-mini-btn gold" style="padding:10px 18px">上傳憑證</span>
-          <input type="file" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.bmp,.tif,.tiff" style="display:none" onchange="addVouchers(this.files)">
+          <input type="file" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.bmp,.tif,.tiff" style="display:none"
+            onclick="(function(e){ try { document.querySelectorAll('[data-mo],[data-nmd],#changePwdModal,#newMonthDialog').forEach(el=>el.remove()); e.target.value=''; } catch(_){} })(event)"
+            onchange="addVouchers(this.files)">
         </label>
       </div>
 
@@ -2917,9 +2921,13 @@ function _inferMonthLabelFromFile(filename) {
 
 // 詢問「覆蓋現有 / 建立新月份 / 取消」
 function showNewMonthChoiceDialog(filename, currentSess, isAuditing) {
+  // ★ 先清掉殘留的舊對話框（防止重複疊加）
+  try { document.querySelectorAll('#newMonthDialog,[data-nmd]').forEach(el => el.remove()); } catch(_){}
   return new Promise(resolve => {
     const curName = __getDisplayName(currentSess) || (currentSess && currentSess.name) || '此客戶';
     const overlay = document.createElement('div');
+    overlay.id = 'newMonthDialog';
+    overlay.dataset.nmd = '1';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center';
     const overwriteBtn = isAuditing ? '' : `
       <button id="nmCovr"
