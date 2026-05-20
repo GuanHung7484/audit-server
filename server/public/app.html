@@ -631,7 +631,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hb-ok { background:#c6efce; color:#276221; border:1px solid #95d5b0; }
 .hb-err { background:#ffc7ce; color:#9c0006; border:1px solid #f3a4ad; }
 .hb-wait { background:#ffeb9c; color:#7d5a00; border:1px solid #e6c95a; }
-.hbadge.hb-none { background:#fce7eb; color:#7a1f2b; border:1px solid #c08191; font-weight:800; }
+.hbadge.hb-none { background:#fce7eb; color:#800020; border:1px solid #c08191; font-weight:800; }
 .hist-rec-badges { display:inline-flex; gap:6px; align-items:center; }
 .hist-rec-del { background:none; border:none; color:#e53e3e; cursor:pointer; font-size:19px; padding:0 6px; opacity:.45; flex-shrink:0; }
 .hist-rec-del:hover { opacity:1; }
@@ -882,7 +882,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .ov-badge-ok { background: #d4edda; color: #155724; border: 1px solid #95d5b0; }
 .ov-badge-err { background: #f8d7da; color: #721c24; border: 1px solid #f3a4ad; }
 .ov-badge-wait { background: #fff3cd; color: #856404; border: 1px solid #e6c95a; }
-.ov-badge-none { background: #fce7eb; color: #7a1f2b; border: 1px solid #c08191; font-weight: 800; }
+.ov-badge-none { background: #fce7eb; color: #800020; border: 1px solid #c08191; font-weight: 800; }
 .ov-view-btn { background: #ebf6ff; border: 1px solid #b6d9ff; color: #1c5cab; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .ov-view-btn:hover { background: #d6ebff; }
 .ov-reassign-btn { background: #fef0d8; border: 1px solid #d4a258; color: #5b2c0c; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
@@ -1151,7 +1151,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .wk-hist-hb.hb-ok   { background: #c6efce; color: #1f5e2e; border-color: #95d5b0; }
 .wk-hist-hb.hb-err  { background: #ffc7ce; color: #8b0d18; border-color: #f3a4ad; }
 .wk-hist-hb.hb-wait { background: #ffeb9c; color: #7d5a00; border-color: #e6c95a; }
-.wk-hist-hb.hb-none { background: #fce7eb; color: #7a1f2b; border-color: #c08191; font-weight: 800; }
+.wk-hist-hb.hb-none { background: #fce7eb; color: #800020; border-color: #c08191; font-weight: 800; }
 .wk-hist-row-actions { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; }
 .wk-hist-export { background: #ebf6ff; border: 1px solid #b6d9ff; color: #1c5cab; border-radius: 7px; padding: 7px 14px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0; }
 .wk-hist-export:hover { background: #d6ebff; }
@@ -4389,14 +4389,13 @@ let receiptModalIdx = -1;  // 目前 modal 顯示的憑證在 vouchers 陣列中
 
 // ── 以「憑證」為基準計算各狀態數量（同一張憑證即使連結多筆 row 也只算一次）──
 //    優先順序：不正確 > 待確認 > 正確 — 顯示最嚴重的狀態
+//    保證：vOk + vErr + vWait + vUnmatched === voucherList 去重後的長度
 function _calcVoucherStats(entry) {
   const rows = (entry && entry.rows) || [];
   const vList = (entry && entry.voucherList) || [];
   const vListDedup = Array.from(new Set(vList.filter(Boolean)));
-  const linkedNames = new Set();
-  rows.forEach(r => { if (r.voucherName) linkedNames.add(r.voucherName); });
-  const vUnmatched = vListDedup.filter(vn => !linkedNames.has(vn)).length;
 
+  // 1. 對每張有 status 的 row 計算其憑證的最嚴重狀態
   const prio = { '不正確': 3, '待確認': 2, '正確': 1 };
   const vStatus = new Map();
   rows.forEach(r => {
@@ -4406,11 +4405,15 @@ function _calcVoucherStats(entry) {
       vStatus.set(r.voucherName, r.status);
     }
   });
-  let vOk = 0, vErr = 0, vWait = 0;
-  vStatus.forEach(s => {
+
+  // 2. 以 voucherList 為主迭代，每張憑證查狀態 — 確保總和 = voucherList.length
+  let vOk = 0, vErr = 0, vWait = 0, vUnmatched = 0;
+  vListDedup.forEach(vn => {
+    const s = vStatus.get(vn);
     if (s === '正確') vOk++;
     else if (s === '不正確') vErr++;
     else if (s === '待確認') vWait++;
+    else vUnmatched++;  // 沒狀態 或 沒連到任何 row → 都算未匹配
   });
   return { vOk, vErr, vWait, vUnmatched };
 }
@@ -7497,23 +7500,31 @@ function renderHistoryList() {
     // ★ 統一以「憑證」為基準計算（與核對歷史列表一致）
     const _stats = _calcVoucherStats(entry);
     const vOk = _stats.vOk, vErr = _stats.vErr, vWait = _stats.vWait, vUnmatched = _stats.vUnmatched;
-    const linkedVoucherNames = new Set();
-    (rows || []).forEach(r => { if (r.voucherName) linkedVoucherNames.add(r.voucherName); });
+    // 未匹配憑證清單：包含「沒連到 row」和「連到 row 但沒狀態」兩種
+    const _vStatusForList = new Map();
+    const _prioForList = { '不正確': 3, '待確認': 2, '正確': 1 };
+    (rows || []).forEach(r => {
+      if (!r.voucherName || !r.status) return;
+      const cur = _vStatusForList.get(r.voucherName);
+      if (!cur || (_prioForList[r.status] || 0) > (_prioForList[cur] || 0)) {
+        _vStatusForList.set(r.voucherName, r.status);
+      }
+    });
     const vListDedup = Array.from(new Set((vList || []).filter(Boolean)));
-    const unmatchedVouchers = vListDedup.filter(vn => !linkedVoucherNames.has(vn));
+    const unmatchedVouchers = vListDedup.filter(vn => !_vStatusForList.has(vn));
 
     // ★ 渲染「未匹配憑證」列（酒紅色背景以利辨識）
     const unmatchedRowsHtml = unmatchedVouchers.map(vn => {
       return `<tr class="hr-unmatched-voucher" style="background:#fbeef0">
-        <td style="color:#7a1f2b;font-size:13px;font-weight:700">—</td>
+        <td style="color:#800020;font-size:13px;font-weight:700">—</td>
         <td style="color:#a8919b">—</td>
         <td style="color:#a8919b">—</td>
-        <td style="font-weight:700;color:#7a1f2b;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${vn.replace(/"/g,'&quot;')}">📎 ${vn}</td>
+        <td style="font-weight:700;color:#800020;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${vn.replace(/"/g,'&quot;')}">📎 ${vn}</td>
         <td style="text-align:right;color:#a8919b">—</td>
-        <td style="white-space:nowrap"><span class="hd-status st-unmatched" style="background:#722F37;color:#fff;border:1px solid #5a1f28;font-weight:800;padding:3px 9px;border-radius:5px">⚠ 未匹配憑證</span></td>
-        <td class="hd-reason" style="color:#7a1f2b;font-weight:600">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
+        <td style="white-space:nowrap"><span class="hd-status st-unmatched" style="background:#800020;color:#fff;border:1px solid #5e0017;font-weight:800;padding:3px 9px;border-radius:5px">⚠ 未匹配憑證</span></td>
+        <td class="hd-reason" style="color:#800020;font-weight:600">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
         <td style="white-space:nowrap;">
-          <button class="hist-eye-btn" style="background:#fce7eb;border:1px solid #c08191;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#7a1f2b;font-weight:700"
+          <button class="hist-eye-btn" style="background:#fce7eb;border:1px solid #c08191;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#800020;font-weight:700"
             onclick="showHistVoucherImg(event,'${vn.replace(/'/g,"\\'")}',${id})" title="${vn}">👁 查看</button>
         </td>
       </tr>`;
