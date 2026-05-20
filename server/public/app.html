@@ -631,7 +631,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hb-ok { background:#c6efce; color:#276221; border:1px solid #95d5b0; }
 .hb-err { background:#ffc7ce; color:#9c0006; border:1px solid #f3a4ad; }
 .hb-wait { background:#ffeb9c; color:#7d5a00; border:1px solid #e6c95a; }
-.hbadge.hb-none { background:#e2e8f0; color:#475569; border:1px solid #bcc5d3; }
+.hbadge.hb-none { background:#fce7eb; color:#7a1f2b; border:1px solid #c08191; font-weight:800; }
 .hist-rec-badges { display:inline-flex; gap:6px; align-items:center; }
 .hist-rec-del { background:none; border:none; color:#e53e3e; cursor:pointer; font-size:19px; padding:0 6px; opacity:.45; flex-shrink:0; }
 .hist-rec-del:hover { opacity:1; }
@@ -882,7 +882,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .ov-badge-ok { background: #d4edda; color: #155724; border: 1px solid #95d5b0; }
 .ov-badge-err { background: #f8d7da; color: #721c24; border: 1px solid #f3a4ad; }
 .ov-badge-wait { background: #fff3cd; color: #856404; border: 1px solid #e6c95a; }
-.ov-badge-none { background: #e2e8f0; color: #475569; border: 1px solid #bcc5d3; }
+.ov-badge-none { background: #fce7eb; color: #7a1f2b; border: 1px solid #c08191; font-weight: 800; }
 .ov-view-btn { background: #ebf6ff; border: 1px solid #b6d9ff; color: #1c5cab; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .ov-view-btn:hover { background: #d6ebff; }
 .ov-reassign-btn { background: #fef0d8; border: 1px solid #d4a258; color: #5b2c0c; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
@@ -1151,7 +1151,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .wk-hist-hb.hb-ok   { background: #c6efce; color: #1f5e2e; border-color: #95d5b0; }
 .wk-hist-hb.hb-err  { background: #ffc7ce; color: #8b0d18; border-color: #f3a4ad; }
 .wk-hist-hb.hb-wait { background: #ffeb9c; color: #7d5a00; border-color: #e6c95a; }
-.wk-hist-hb.hb-none { background: #e2e8f0; color: #475569; border-color: #bcc5d3; }
+.wk-hist-hb.hb-none { background: #fce7eb; color: #7a1f2b; border-color: #c08191; font-weight: 800; }
 .wk-hist-row-actions { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; }
 .wk-hist-export { background: #ebf6ff; border: 1px solid #b6d9ff; color: #1c5cab; border-radius: 7px; padding: 7px 14px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0; }
 .wk-hist-export:hover { background: #d6ebff; }
@@ -2044,10 +2044,9 @@ function _renderOvHistFiltered() {
 
   const rowsHTML = pagedList.map(entry => {
     const { id, auditDate, auditor, excelFile, voucherCount, results, clientName, auditMonth } = entry;
-    const ok = results?.ok || 0, err = results?.err || 0, wait = results?.wait || 0;
-    const unmatched = (results?.unmatched != null)
-      ? results.unmatched
-      : Math.max(0, (voucherCount || 0) - (ok + err + wait));
+    // ★ 以「憑證」為基準計算 — 與單筆紀錄詳情頁一致
+    const stats = _calcVoucherStats(entry);
+    const ok = stats.vOk, err = stats.vErr, wait = stats.vWait, unmatched = stats.vUnmatched;
     const total = ok + err + wait;
     const acc = total > 0 ? (ok / total * 100) : 0;
     const displayClient = clientName || _detectClientName(excelFile) || '—';
@@ -2166,10 +2165,9 @@ function renderWorkHistory() {
 
   const rowsHTML = list.map((entry, idx) => {
     const { id, auditDate, auditor, excelFile, voucherCount, results, clientName, auditMonth } = entry;
-    const ok = results?.ok || 0, err = results?.err || 0, wait = results?.wait || 0;
-    const unmatched = (results?.unmatched != null)
-      ? results.unmatched
-      : Math.max(0, (voucherCount || 0) - (ok + err + wait));
+    // ★ 以「憑證」為基準計算 — 與單筆紀錄詳情頁一致
+    const stats = _calcVoucherStats(entry);
+    const ok = stats.vOk, err = stats.vErr, wait = stats.vWait, unmatched = stats.vUnmatched;
     const displayClient = clientName || _detectClientName(excelFile) || '—';
     const auditMonthDisp = auditMonth || _inferAuditMonth(entry.rows);
     const monthBadge = auditMonthDisp
@@ -4388,6 +4386,34 @@ function filterVouchers(f, btn) {
 
 // ── Receipt Modal (table row image viewer) ──
 let receiptModalIdx = -1;  // 目前 modal 顯示的憑證在 vouchers 陣列中的索引
+
+// ── 以「憑證」為基準計算各狀態數量（同一張憑證即使連結多筆 row 也只算一次）──
+//    優先順序：不正確 > 待確認 > 正確 — 顯示最嚴重的狀態
+function _calcVoucherStats(entry) {
+  const rows = (entry && entry.rows) || [];
+  const vList = (entry && entry.voucherList) || [];
+  const vListDedup = Array.from(new Set(vList.filter(Boolean)));
+  const linkedNames = new Set();
+  rows.forEach(r => { if (r.voucherName) linkedNames.add(r.voucherName); });
+  const vUnmatched = vListDedup.filter(vn => !linkedNames.has(vn)).length;
+
+  const prio = { '不正確': 3, '待確認': 2, '正確': 1 };
+  const vStatus = new Map();
+  rows.forEach(r => {
+    if (!r.voucherName || !r.status) return;
+    const cur = vStatus.get(r.voucherName);
+    if (!cur || (prio[r.status] || 0) > (prio[cur] || 0)) {
+      vStatus.set(r.voucherName, r.status);
+    }
+  });
+  let vOk = 0, vErr = 0, vWait = 0;
+  vStatus.forEach(s => {
+    if (s === '正確') vOk++;
+    else if (s === '不正確') vErr++;
+    else if (s === '待確認') vWait++;
+  });
+  return { vOk, vErr, vWait, vUnmatched };
+}
 
 // ── 格式化 AI 核對說明：保留分隔，自動加換行（在 [標籤]、；、→ 處）──
 function _formatAIReason(text) {
@@ -7468,23 +7494,26 @@ function renderHistoryList() {
       </tr>`;
     }).join('');
 
-    // ★ 找出未匹配的憑證（在 voucherList 但沒被任何 row 連結到）
+    // ★ 統一以「憑證」為基準計算（與核對歷史列表一致）
+    const _stats = _calcVoucherStats(entry);
+    const vOk = _stats.vOk, vErr = _stats.vErr, vWait = _stats.vWait, vUnmatched = _stats.vUnmatched;
     const linkedVoucherNames = new Set();
     (rows || []).forEach(r => { if (r.voucherName) linkedVoucherNames.add(r.voucherName); });
-    const unmatchedVouchers = (vList || []).filter(vn => vn && !linkedVoucherNames.has(vn));
+    const vListDedup = Array.from(new Set((vList || []).filter(Boolean)));
+    const unmatchedVouchers = vListDedup.filter(vn => !linkedVoucherNames.has(vn));
 
-    // ★ 渲染「未匹配憑證」列（紅色背景以利辨識）
+    // ★ 渲染「未匹配憑證」列（酒紅色背景以利辨識）
     const unmatchedRowsHtml = unmatchedVouchers.map(vn => {
-      return `<tr class="hr-unmatched-voucher" style="background:#fff5f5">
-        <td style="color:#c53030;font-size:13px;font-weight:700">—</td>
-        <td style="color:#a0aec0">—</td>
-        <td style="color:#a0aec0">—</td>
-        <td style="font-weight:700;color:#c53030;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${vn.replace(/"/g,'&quot;')}">📎 ${vn}</td>
-        <td style="text-align:right;color:#a0aec0">—</td>
-        <td style="white-space:nowrap"><span class="hd-status st-none" style="background:#fed7d7;color:#c53030;border:1px solid #fc8181;font-weight:800">⚠ 未匹配憑證</span></td>
-        <td class="hd-reason" style="color:#c53030;font-weight:600">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
+      return `<tr class="hr-unmatched-voucher" style="background:#fbeef0">
+        <td style="color:#7a1f2b;font-size:13px;font-weight:700">—</td>
+        <td style="color:#a8919b">—</td>
+        <td style="color:#a8919b">—</td>
+        <td style="font-weight:700;color:#7a1f2b;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${vn.replace(/"/g,'&quot;')}">📎 ${vn}</td>
+        <td style="text-align:right;color:#a8919b">—</td>
+        <td style="white-space:nowrap"><span class="hd-status st-unmatched" style="background:#722F37;color:#fff;border:1px solid #5a1f28;font-weight:800;padding:3px 9px;border-radius:5px">⚠ 未匹配憑證</span></td>
+        <td class="hd-reason" style="color:#7a1f2b;font-weight:600">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
         <td style="white-space:nowrap;">
-          <button class="hist-eye-btn" style="background:#fed7d7;border:1px solid #fc8181;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#c53030;font-weight:700"
+          <button class="hist-eye-btn" style="background:#fce7eb;border:1px solid #c08191;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#7a1f2b;font-weight:700"
             onclick="showHistVoucherImg(event,'${vn.replace(/'/g,"\\'")}',${id})" title="${vn}">👁 查看</button>
         </td>
       </tr>`;
@@ -7522,10 +7551,10 @@ function renderHistoryList() {
         <span class="hist-rec-file" title="${excelFile}">📊 ${excelFile}${monthBadge}</span>
         <span style="font-size:14px;color:#5b2c0c;white-space:nowrap;font-weight:600">憑證 ${voucherCount} 張</span>
         <span class="hist-rec-badges">
-          <span class="hbadge hb-ok"><span class="hb-label">匹配成功</span><span class="hb-num">✓${results.ok||0}</span></span>
-          <span class="hbadge hb-err"><span class="hb-label">匹配異常</span><span class="hb-num">✗${results.err||0}</span></span>
-          <span class="hbadge hb-wait"><span class="hb-label">人工待確認</span><span class="hb-num">?${results.wait||0}</span></span>
-          <span class="hbadge hb-none" title="未匹配憑證數"><span class="hb-label">未匹配</span><span class="hb-num">${(results.unmatched != null) ? results.unmatched : Math.max(0, (voucherCount||0) - ((results.ok||0)+(results.err||0)+(results.wait||0)))}</span></span>
+          <span class="hbadge hb-ok" title="以憑證為基準：${vOk} 張匹配成功"><span class="hb-label">匹配成功</span><span class="hb-num">✓${vOk}</span></span>
+          <span class="hbadge hb-err" title="以憑證為基準：${vErr} 張匹配異常"><span class="hb-label">匹配異常</span><span class="hb-num">✗${vErr}</span></span>
+          <span class="hbadge hb-wait" title="以憑證為基準：${vWait} 張待人工確認"><span class="hb-label">人工待確認</span><span class="hb-num">?${vWait}</span></span>
+          <span class="hbadge hb-none" title="${vUnmatched} 張憑證未匹配（顯示於下方酒紅色列）"><span class="hb-label">未匹配</span><span class="hb-num">${vUnmatched}</span></span>
         </span>
         <button onclick="event.stopPropagation();openReassignClient(${id})" title="重新指派客戶" style="background:#fef0d8;border:1px solid #d4a258;color:#5b2c0c;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">← 重新指派</button>
         <button onclick="event.stopPropagation();exportHistoryExcel(${id})" title="匯出此筆紀錄為 Excel" style="background:#ebf8ff;border:1px solid #bee3f8;color:#2b6cb0;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">📥 匯出</button>
