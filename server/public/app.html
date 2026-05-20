@@ -631,7 +631,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hb-ok { background:#c6efce; color:#276221; border:1px solid #95d5b0; }
 .hb-err { background:#ffc7ce; color:#9c0006; border:1px solid #f3a4ad; }
 .hb-wait { background:#ffeb9c; color:#7d5a00; border:1px solid #e6c95a; }
-.hbadge.hb-none { background:#fce7eb; color:#800020; border:1px solid #c08191; font-weight:800; }
+.hbadge.hb-none { background:#800020; color:#fff; border:1px solid #5e0017; font-weight:800; }
 .hist-rec-badges { display:inline-flex; gap:6px; align-items:center; }
 .hist-rec-del { background:none; border:none; color:#e53e3e; cursor:pointer; font-size:19px; padding:0 6px; opacity:.45; flex-shrink:0; }
 .hist-rec-del:hover { opacity:1; }
@@ -882,7 +882,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .ov-badge-ok { background: #d4edda; color: #155724; border: 1px solid #95d5b0; }
 .ov-badge-err { background: #f8d7da; color: #721c24; border: 1px solid #f3a4ad; }
 .ov-badge-wait { background: #fff3cd; color: #856404; border: 1px solid #e6c95a; }
-.ov-badge-none { background: #fce7eb; color: #800020; border: 1px solid #c08191; font-weight: 800; }
+.ov-badge-none { background: #800020; color: #fff; border: 1px solid #5e0017; font-weight: 800; }
 .ov-view-btn { background: #ebf6ff; border: 1px solid #b6d9ff; color: #1c5cab; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .ov-view-btn:hover { background: #d6ebff; }
 .ov-reassign-btn { background: #fef0d8; border: 1px solid #d4a258; color: #5b2c0c; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
@@ -1151,7 +1151,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .wk-hist-hb.hb-ok   { background: #c6efce; color: #1f5e2e; border-color: #95d5b0; }
 .wk-hist-hb.hb-err  { background: #ffc7ce; color: #8b0d18; border-color: #f3a4ad; }
 .wk-hist-hb.hb-wait { background: #ffeb9c; color: #7d5a00; border-color: #e6c95a; }
-.wk-hist-hb.hb-none { background: #fce7eb; color: #800020; border-color: #c08191; font-weight: 800; }
+.wk-hist-hb.hb-none { background: #800020; color: #fff; border-color: #5e0017; font-weight: 800; }
 .wk-hist-row-actions { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; }
 .wk-hist-export { background: #ebf6ff; border: 1px solid #b6d9ff; color: #1c5cab; border-radius: 7px; padding: 7px 14px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0; }
 .wk-hist-export:hover { background: #d6ebff; }
@@ -1509,7 +1509,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
           <!-- 4 格統計：未匹配 / 匹配成功 / 待人工確認 / 匹配異常 -->
           <div class="stat-card stat-card-mini" onclick="setStatusFilter('unchecked')" title="未匹配">
             <div class="sc-label">未匹配</div>
-            <div class="sc-num" id="stat-unmatched">0</div>
+            <div class="sc-num" style="color:#800020" id="stat-unmatched">0</div>
           </div>
           <div class="stat-card stat-card-mini" onclick="setStatusFilter('ok')" title="匹配成功">
             <div class="sc-label">匹配成功</div>
