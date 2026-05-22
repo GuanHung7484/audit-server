@@ -5794,40 +5794,14 @@ async function callGeminiVision(token, file, filename) {
 - 簽名欄旁邊的手寫總額
 若憑證有「實際付款為 ___」「實收 ___」「實付 ___」這類手寫文字，那個就是 total_amount！
 
-▍規則 3：★★★ 金額四欄位必填（嚴格規範）★★★
-- total_amount = 含稅總額（**最終付款金額**，最重要，一定要填）
-- pretax_amount = 未稅金額/銷售額/銷售金額/未稅銷售額（**含稅總額扣掉營業稅後的金額**）
-- tax_amount = 營業稅/稅額/應納稅額（**通常是未稅 × 5%**）
+▍規則 3：金額四欄位（精簡）
+- total_amount = 含稅總額（最終付款金額，必填）
+- pretax_amount = 未稅金額（憑證明示就照填，未明示則用 total_amount ÷ 1.05 推算）
+- tax_amount = 營業稅（未稅 × 0.05；台灣 5%）
 - item_amount = 商品小計（不含稅）
-
-★★ 必須遵守的數學關係（用於 AI 自我驗證）：
-  pretax_amount + tax_amount = total_amount
-  tax_amount ≈ pretax_amount × 0.05（台灣 5% 營業稅）
-
-★★ 多種憑證的填法範例：
-  範例 A（三聯式統一發票，明確分欄）：
-    印刷顯示：銷售額 1,000 / 稅額 50 / 總計 1,050
-    → pretax_amount=1000, tax_amount=50, total_amount=1050
-
-  範例 B（收銀機電子發票，含稅單價 105）：
-    印刷顯示：總計 1,050（含稅 5%）
-    → total_amount=1050, pretax_amount=1000（推算）, tax_amount=50（推算）
-    ★ 即使憑證未明示，也要主動推算 pretax 和 tax 來填入！
-
-  範例 C（收據/銷貨單，未稅）：
-    印刷顯示：合計 1,000
-    → 若有「未稅」字樣 → pretax_amount=1000, tax_amount=0/null, total_amount=1000
-    → 若無稅字樣 → 一律當作含稅 → total_amount=1000, pretax/tax 推算
-
-  範例 D（電信/水電/健保帳單）：
-    印刷顯示：應繳總金額 946
-    → total_amount=946, pretax_amount 與 tax_amount 留 null（這類帳單不適用 5% 規則）
-
-★★ 若憑證金額有不一致時的處理：
-  - 看到「銷售額 8,694」「總計 8,694」「實付 9,129」→ 應該是手寫「實付」優先 → total_amount=9129
-  - 找不到「總計/合計/應繳」→ 加總各品項金額作為 total_amount
-
-★★ 重要：pretax + tax 必須等於 total（誤差 ±1 元以內），否則表示讀錯，請重新檢查！
+- 關係：pretax + tax ≈ total（誤差 ±1 元）
+- 電信/水電/健保帳單 → pretax / tax 留 null（不適用 5%）
+- 手寫「實付」「實收」優先於印刷
 
 ▍規則 4：日期擴大關鍵字搜尋（不只是「日期」二字）
 請搜尋以下任何字樣後面接的數字當作日期：
@@ -5863,54 +5837,10 @@ async function callGeminiVision(token, file, filename) {
 若有總稅額（如 325），把總稅額填入 tax_amount。
 這樣系統可自動計算「品項加總 × 1.05 = 含稅總計」並交叉驗證。
 
-▍★★★★★ 規則 7：統一編號（買方統編）擷取 — 極重要必抓 ★★★★★
-請務必、務必、務必仔細搜尋憑證上**任何 8 位數字的統一編號**：
-- 填入 buyer_tax_id 欄位（**8 位數字格式**，例：60621561、93551400、26159047）
-- 搜尋關鍵字：「統一編號」「統編」「買受人統編」「買方統編」「客戶統一編號」「C:」「統編：」「BAN」
-- 通常位置：憑證右上方、買受人/客戶資料區、收據開頭客戶資料、發票右側方框
-
-★ 收銀機電子發票特別注意：
-  收銀機發票上常有「統一編號：93551400」或「統一編號 93551400」這種格式
-  也可能是手寫的 8 位數字寫在客戶資料區
-  ★ **這個必須抓到！** 是查帳審核最重要的依據
-
-★ 三聯式統一發票：
-  右上方買受人區域必有「統一編號 ___」欄位，填寫對應的 8 位數字
-
-★ 範例：
-  - 「買受人 小鵲信實業有限公司 統一編號 93551400」→ buyer_tax_id = "93551400"
-  - 「C:26159047 TEL:03-5329820」→ buyer_tax_id = "26159047"（C: 後面 8 位數字就是統編）
-  - 「BAN:60621561」→ buyer_tax_id = "60621561"
-  - 「統編：93551400」→ buyer_tax_id = "93551400"
-
-★ 不要混淆：
-  - 「發票號碼 AA34343133」→ 這是 invoice_no，不是統編
-  - 「序號 0353」→ 不是統編
-  - 「機號 001」→ 不是統編
-  - 「店號」「員工編號」等其他編號 → 不是統編
-  - 只有 **8 位數字** 且在「買受人」「客戶」資料區的才是 buyer_tax_id
-
-★ 統編必須是純數字 8 位，若看到「2611-49011」或類似格式請去除符號後填純數字
-★ 找不到才填 null（請盡力尋找，不要輕易放棄）
-
-▍★★★★★ 規則 6：品名 / 品項擷取（必填，與 Excel 主項目不同！）★★★★★
-請逐項抓取憑證上「品名 / 商品名稱 / 項目 / 品項」欄位的文字，全部填到 items[].name 陣列裡。
-另外，把「最主要的品名」（通常是第一個品項，或金額最大的品項）**獨立填入 main_item_name 欄位**。
-
-★ main_item_name **必須填**（電信/水電/健保帳單例外可以填 null）！
-
-★ 範例：
-  - 收銀機發票寫「一般殼皮罩入電 1*1 18T」「130元小殼盤-皮 *1 135T」
-    → main_item_name = "一般殼皮罩入電"（第一個品項）
-    → items = [{name:"一般殼皮罩入電",...}, {name:"130元小殼盤-皮",...}]
-  - 銷貨單寫「殺菌全蛋液新鮮屋」
-    → main_item_name = "殺菌全蛋液新鮮屋"
-  - 三聯式發票寫「格力冷氣 GKS-105HO」
-    → main_item_name = "格力冷氣"
-
-★ 重要：main_item_name 必須是憑證上**實際看到的產品名**，
-   不要憑空寫「雜項」「五金器皿」「銷貨」這種類別名稱
-   不要寫商店名稱（如「巨城」「家樂福」）作為品名
+▍規則 6 & 7：品名 + 統編（精簡版）
+- buyer_tax_id：搜尋「統一編號 / 統編 / C: / BAN:」後面的 8 位數字（買方的，非發票號碼/序號/機號）
+- main_item_name：填憑證上實際看到的主要產品名（如「燈具」「殺菌全蛋液」）；不要填類別名（如「雜項」「銷貨」）；電信/水電/健保帳單填 null
+- items[]：把憑證上每一個品項都列出（陣列裡每個物件填 name）
 
 優先順序：
 - 主要匹配依據：**未稅金額、營業稅、含稅總額、日期** ← 必須優先用這四個比對 Excel
@@ -8361,6 +8291,14 @@ async function reanalyzeAllVouchers(histId, btn) {
 // ★★★ 對舊憑證自動重新跑 AI 分析（補齊統編 / 完整品項 / 未稅 / 營業稅）
 const _autoRefreshedVouchers = new Set();  // 同一個 session 內已重新分析過的避免重複呼叫 API
 async function _autoRefreshHistVoucherData(voucherName, histId, imageBlob) {
+  // ★ 若任何 session 正在審核中，不要自動重抓（避免搶 API 配額讓審核變慢）
+  try {
+    if (Array.isArray(__sessions) && __sessions.some(s => s.auditing)) {
+      console.log('[Auto-refresh] 跳過 — 有 session 正在審核中');
+      return;
+    }
+  } catch(_){}
+
   const cacheKey = histId + '__' + voucherName;
   if (_autoRefreshedVouchers.has(cacheKey)) return;
   _autoRefreshedVouchers.add(cacheKey);
