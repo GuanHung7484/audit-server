@@ -589,10 +589,10 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .rm-match-bar { max-width:88vw; width:88vw; background:rgba(0,0,0,.6); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; margin-top:-4px; }
 .rm-match-bar-title { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
 /* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
-.rm-match-head { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.rm-match-head { display:grid; grid-template-columns:50px 70px 90px 1.4fr 60px 70px 85px 70px 95px 80px 1.6fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
 .rm-match-head > span { white-space:nowrap; text-align:center; }
 /* 資料列：改為 grid 配合上面 head；AI 核對說明可換行完整顯示 */
-.rm-match-row { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:8px 10px; margin-bottom:4px; cursor:default; }
+.rm-match-row { display:grid; grid-template-columns:50px 70px 90px 1.4fr 60px 70px 85px 70px 95px 80px 1.6fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:8px 10px; margin-bottom:4px; cursor:default; }
 .rm-match-row:last-child { margin-bottom:0; }
 .rm-match-num { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
 .rm-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
@@ -679,9 +679,9 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-match-bar { background:rgba(0,0,0,.45); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; width:100%; }
 .hist-match-bar-title { color:rgba(255,255,255,.5); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
 /* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
-.hist-match-head { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.hist-match-head { display:grid; grid-template-columns:50px 70px 90px 1.4fr 60px 70px 85px 70px 95px 80px 1.6fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
 .hist-match-head > span { white-space:nowrap; text-align:center; }
-.hist-match-row { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:8px 10px; margin-bottom:4px; }
+.hist-match-row { display:grid; grid-template-columns:50px 70px 90px 1.4fr 60px 70px 85px 70px 95px 80px 1.6fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:8px 10px; margin-bottom:4px; }
 .hist-match-row:last-child { margin-bottom:0; }
 .hist-match-num  { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
 .hist-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
@@ -4399,20 +4399,26 @@ function _calcVoucherStats(entry) {
   const vList = (entry && entry.voucherList) || [];
   const vListDedup = Array.from(new Set(vList.filter(Boolean)));
 
-  // 算 rows 中各狀態的列數（一張憑證對應多筆明細時，會算多次）
-  let vOk = 0, vErr = 0, vWait = 0;
+  // 每張憑證的最壞狀態（不正確 > 待確認 > 正確）
+  const prio = { '不正確': 3, '待確認': 2, '正確': 1 };
+  const vStatus = new Map();
   rows.forEach(r => {
     if (!r.voucherName || !r.status) return;
-    if (r.status === '正確') vOk++;
-    else if (r.status === '不正確') vErr++;
-    else if (r.status === '待確認') vWait++;
+    const cur = vStatus.get(r.voucherName);
+    if (!cur || (prio[r.status] || 0) > (prio[cur] || 0)) {
+      vStatus.set(r.voucherName, r.status);
+    }
   });
 
-  // 未匹配：voucherList 中沒被連結到的憑證數（= 下方紅色列數）
-  const linked = new Set();
-  rows.forEach(r => { if (r.voucherName) linked.add(r.voucherName); });
-  const vUnmatched = vListDedup.filter(vn => !linked.has(vn)).length;
-
+  // 以憑證為基準計數（保證 vOk + vErr + vWait + vUnmatched = 憑證總數）
+  let vOk = 0, vErr = 0, vWait = 0, vUnmatched = 0;
+  vListDedup.forEach(vn => {
+    const s = vStatus.get(vn);
+    if (s === '正確') vOk++;
+    else if (s === '不正確') vErr++;
+    else if (s === '待確認') vWait++;
+    else vUnmatched++;
+  });
   return { vOk, vErr, vWait, vUnmatched };
 }
 
@@ -4540,91 +4546,85 @@ function renderReceiptMatchBar(voucherIdx) {
   const _vmRm = _vForRm ? (voucherMeta[_vForRm.id] || {}) : {};
   const _vTaxIdRm = _vmRm.invTaxId || '';
   const _vTotalRm = _vmRm.invTotal;
+  const _vDateRm = _vmRm.invDate || '';
   const _vItemsFullRm = (_vmRm.invItemsFull && Array.isArray(_vmRm.invItemsFull)) ? _vmRm.invItemsFull : [];
   const _vItemsListRm = (_vmRm.invItemsList && Array.isArray(_vmRm.invItemsList)) ? _vmRm.invItemsList.filter(Boolean) : [];
 
   // 計算 Excel 合計
   const excelSum = matched.reduce((s, m) => s + (m.r.expense || m.r.income || 0), 0);
 
-  // ★★ 新版：憑證品項明細表（每個品項一列）
-  const _fmtN = (n) => (n == null || n === '') ? '<span style="opacity:.3">—</span>' : Number(n).toLocaleString();
-  const _fmtCur = (n) => (n == null) ? '<span style="opacity:.3">—</span>' : '$' + Number(n).toLocaleString();
+  // 整理品項
+  let itemsRm = [];
+  if (_vItemsFullRm.length > 0) itemsRm = _vItemsFullRm;
+  else if (_vItemsListRm.length > 0) itemsRm = _vItemsListRm.map(name => ({ name, qty: null, unit_price: null, amount: null }));
+  else if (_vmRm.invMainItem) itemsRm = [{ name: _vmRm.invMainItem, qty: null, unit_price: null, amount: null }];
 
-  // 表頭：品名 | 數量 | 單價 | 未稅金額 | 營業稅 | 含稅總額
-  const headerHtml = `<div class="rm-item-head" style="display:grid;grid-template-columns:1.8fr 70px 90px 100px 90px 100px;gap:10px;align-items:center;padding:6px 12px;color:rgba(255,255,255,.65);font-size:13px;font-weight:800;letter-spacing:.4px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:6px;text-align:center">
-    <span style="text-align:left">品名</span>
+  const _fmtN = (n) => (n == null || n === '') ? '<span style="opacity:.35">—</span>' : Number(n).toLocaleString();
+
+  // ★ 整張憑證統一一列；多品項時各欄位多行顯示
+  const rowNumsStr = matched.map(m => '#' + m.displayNum).join('<br>');
+  const datesStr = matched.length > 0 ? matched.map(m => m.r.payDate || m.r.date || '').filter(Boolean).join('<br>') : _vDateRm;
+  // 取最壞狀態
+  const allStatuses = matched.map(m => m.chk.status || '');
+  const prio2 = { '不正確': 3, '待確認': 2, '正確': 1, '': 0 };
+  const worstStatus = allStatuses.reduce((w, s) => (prio2[s] || 0) > (prio2[w] || 0) ? s : w, '');
+  const badgeCls = worstStatus === '正確' ? 'ok' : worstStatus === '不正確' ? 'err' : worstStatus === '待確認' ? 'wait' : 'none';
+  const badgeLabel = worstStatus === '正確' ? '✓ 正確' : worstStatus === '不正確' ? '✗ 不正確' : worstStatus === '待確認' ? '? 待確認' : '—';
+  // 多 row 的 AI 核對說明合併
+  const reasonsHtml = matched.map(m => _formatAIReason(m.chk.aiReason || '')).filter(Boolean).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${r}</div>`).join('');
+
+  // 品名/數量/單價/未稅/營業稅/含稅 每個品項一行
+  const namesHtml = itemsRm.map(it => `<div>${it.name}</div>`).join('');
+  const qtysHtml = itemsRm.map(it => `<div>${_fmtN(it.qty)}</div>`).join('');
+  const unitsHtml = itemsRm.map(it => `<div>${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style="opacity:.35">—</span>'}</div>`).join('');
+  const pretaxList = itemsRm.map(it => it.amount != null ? Number(it.amount) : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null));
+  const pretaxsHtml = pretaxList.map(p => `<div>${_fmtN(p)}</div>`).join('');
+  const taxsHtml = pretaxList.map(p => `<div>${_fmtN(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
+  const totalsHtml = pretaxList.map(p => `<div>${_fmtN(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
+
+  // 表頭：# | 日期 | 統編 | 品名 | 數量 | 單價 | 未稅 | 營業稅 | 含稅總額 | 結果 | AI 核對說明
+  const headerHtml = `<div class="rm-match-head">
+    <span>#</span>
+    <span>日期</span>
+    <span>統編</span>
+    <span>品名</span>
     <span>數量</span>
     <span>單價</span>
-    <span>未稅金額</span>
+    <span>未稅</span>
     <span>營業稅</span>
     <span>含稅總額</span>
+    <span>結果</span>
+    <span>AI 核對說明</span>
   </div>`;
 
-  // 整理品項資料：優先用 invItemsFull（含 qty/unit_price），否則 fallback 用 invItemsList（只有名稱）
-  let itemsToRender = [];
-  if (_vItemsFullRm.length > 0) {
-    itemsToRender = _vItemsFullRm;
-  } else if (_vItemsListRm.length > 0) {
-    itemsToRender = _vItemsListRm.map(name => ({ name, qty: null, unit_price: null, amount: null }));
-  } else {
-    // 最終 fallback：用 main_item_name + 整張憑證的 total
-    const mainName = _vmRm.invMainItem || '';
-    if (mainName) itemsToRender = [{ name: mainName, qty: null, unit_price: null, amount: null }];
-  }
+  // ★ 一張憑證一列（含所有品項）
+  const singleRowHtml = `<div class="rm-match-row" style="cursor:default">
+    <span style="font-family:monospace;color:#93c5fd;font-weight:700;font-size:13px;text-align:center">${rowNumsStr || '—'}</span>
+    <span style="color:rgba(255,255,255,.85);font-size:13px;text-align:center">${datesStr || '<span style=\"opacity:.35\">—</span>'}</span>
+    <span style="color:#fff;font-family:monospace;font-size:13px;font-weight:700;text-align:center">${_vTaxIdRm || '<span style=\"opacity:.35\">—</span>'}</span>
+    <div style="color:#fff;font-size:13px;font-weight:600;line-height:1.5">${namesHtml || '<span style=\"opacity:.35\">—</span>'}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${qtysHtml}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${unitsHtml}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${pretaxsHtml}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${taxsHtml}</div>
+    <div style="color:#fbbf24;font-family:monospace;font-size:14px;font-weight:700;text-align:center;line-height:1.5">${totalsHtml}</div>
+    <span class="rm-match-badge ${badgeCls}" style="align-self:start">${badgeLabel}</span>
+    <div class="rm-match-reason">${reasonsHtml || '<span style=\"opacity:.35\">—</span>'}</div>
+  </div>`;
 
-  const itemsHtml = itemsToRender.map(it => {
-    const pretax = it.amount != null
-      ? Number(it.amount)
-      : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null);
-    const tax = pretax != null ? Math.round(pretax * 0.05) : null;
-    const total = (pretax != null && tax != null) ? (pretax + tax) : null;
-    return `<div style="display:grid;grid-template-columns:1.8fr 70px 90px 100px 90px 100px;gap:10px;align-items:center;background:rgba(255,255,255,.06);border-radius:6px;padding:7px 12px;margin-bottom:4px">
-      <span style="color:#fff;font-size:13px;font-weight:600;word-break:break-all">${it.name}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${_fmtN(it.qty)}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style="opacity:.3">—</span>'}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:14px">${_fmtN(pretax)}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${_fmtN(tax)}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:14px;font-weight:700">${_fmtN(total)}</span>
-    </div>`;
-  }).join('');
-
-  // ★ 對應 Excel 列摘要（精簡，不重複顯示品名）
-  const excelSummaryHtml = matched.map(({ r, chk, displayNum, fi, corrKey }) => {
-    const amt = r.expense || r.income || 0;
-    const status = chk.status || '';
-    const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
-    const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '—';
-    const dateStr = r.payDate || r.date || '';
-    return `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border-radius:6px;padding:5px 10px;margin:3px 4px 3px 0;font-size:12px;cursor:pointer" onclick="rmSelectRow(${fi},${voucherIdx})" title="點擊查看明細">
-      <span style="font-family:monospace;color:#93c5fd;font-weight:700">#${displayNum}</span>
-      <span style="color:rgba(255,255,255,.6)">${dateStr}</span>
-      <span style="color:#fbbf24;font-family:monospace;font-weight:700">${amt.toLocaleString()}</span>
-      <span class="rm-match-badge ${badgeCls}" style="font-size:11px">${badgeLabel}</span>
-    </div>`;
-  }).join('');
-
-  // 合計差額
-  const diffHtml = (_vTotalRm != null)
-    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.8)">
-        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace">${_vTotalRm.toLocaleString()}</b></span>
+  // 合計
+  const sumPretax = pretaxList.reduce((s, p) => s + (p || 0), 0);
+  const sumTax = Math.round(sumPretax * 0.05);
+  const sumTotal = sumPretax + sumTax;
+  const diffHtml = (_vTotalRm != null || sumTotal > 0)
+    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85)">
+        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace">${(_vTotalRm != null ? _vTotalRm : sumTotal).toLocaleString()}</b></span>
         <span style="margin-right:14px">Excel 合計：<b style="color:#93c5fd;font-family:monospace">${excelSum.toLocaleString()}</b></span>
-        <span>差額：<b style="color:${Math.abs(_vTotalRm - excelSum) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${(_vTotalRm - excelSum).toLocaleString()}</b></span>
+        <span>差額：<b style="color:${Math.abs((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum).toLocaleString()}</b></span>
       </div>`
     : '';
 
-  // 統編顯示在頂部
-  const taxIdHtml = _vTaxIdRm
-    ? `<div style="display:inline-block;margin-bottom:8px;padding:3px 12px;background:#1e3a5f;color:#fff;border:1px solid #fbbf24;border-radius:6px;font-size:12px;font-weight:800;font-family:monospace">統編：${_vTaxIdRm}</div>`
-    : '';
-
-  content.innerHTML = `
-    ${taxIdHtml}
-    <div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:4px">📦 憑證品項明細</div>
-    ${headerHtml}
-    ${itemsHtml || '<div style="color:rgba(255,255,255,.3);padding:8px;text-align:center;font-size:12px">（無品項資料）</div>'}
-    ${diffHtml}
-    ${excelSummaryHtml ? `<div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:8px"><div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:5px">📋 對應 Excel 明細列</div>${excelSummaryHtml}</div>` : ''}
-  `;
+  content.innerHTML = headerHtml + singleRowHtml + diffHtml;
 
   // 追加手動狀態修改列
   const vForStatus = vouchers[voucherIdx];
@@ -7845,105 +7845,88 @@ function renderHistMatchBar(voucherName, histId) {
   }
 
   const safeVName = String(voucherName || '').replace(/'/g, "\\'");
-
-  // ★★ 從第一筆 row 取得憑證資料（同一張憑證所有 row 的 voucher* 欄位都相同）
+  // 從第一筆 row 取得憑證共用資料
   const firstRow = matchedRowsWithIdx[0]?.row || {};
   const _taxIdH = firstRow.voucherTaxId || '';
   const _totalH = firstRow.voucherTotal != null ? Number(firstRow.voucherTotal) : null;
   const _itemsFullH = (firstRow.voucherItemsFull && Array.isArray(firstRow.voucherItemsFull)) ? firstRow.voucherItemsFull : [];
   const _itemsListH = (firstRow.voucherItems && Array.isArray(firstRow.voucherItems)) ? firstRow.voucherItems.filter(Boolean) : [];
 
-  // Excel 合計
   const excelSumH = matchedRowsWithIdx.reduce((s, x) => s + (x.row.amount || 0), 0);
+  const _fmtH = (n) => (n == null || n === '') ? '<span style="opacity:.35">—</span>' : Number(n).toLocaleString();
 
-  const _fmtH = (n) => (n == null || n === '') ? '<span style="opacity:.3">—</span>' : Number(n).toLocaleString();
-
-  // 表頭：品名 | 數量 | 單價 | 未稅金額 | 營業稅 | 含稅總額
-  const headerHtmlH = `<div style="display:grid;grid-template-columns:1.8fr 70px 90px 100px 90px 100px;gap:10px;align-items:center;padding:6px 12px;color:rgba(255,255,255,.65);font-size:13px;font-weight:800;letter-spacing:.4px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:6px;text-align:center">
-    <span style="text-align:left">品名</span>
-    <span>數量</span>
-    <span>單價</span>
-    <span>未稅金額</span>
-    <span>營業稅</span>
-    <span>含稅總額</span>
-  </div>`;
-
-  // 整理品項：優先 voucherItemsFull，否則 voucherItems，否則 fallback 從 aiReason / mainItem
-  let itemsToRenderH = [];
-  if (_itemsFullH.length > 0) {
-    itemsToRenderH = _itemsFullH;
-  } else if (_itemsListH.length > 0) {
-    itemsToRenderH = _itemsListH.map(name => ({ name, qty: null, unit_price: null, amount: null }));
-  } else {
-    let fallbackName = firstRow.voucherMainItem || '';
-    if (!fallbackName && firstRow.aiReason) {
-      const m = String(firstRow.aiReason).match(/品項[:：]\s*([^；;,\n]+)/);
-      if (m) {
-        const parts = m[1].trim().split(/[、，,]/).map(s => s.trim()).filter(Boolean);
-        itemsToRenderH = parts.map(p => ({ name: p, qty: null, unit_price: null, amount: null }));
-      }
-    }
-    if (itemsToRenderH.length === 0 && fallbackName) {
-      itemsToRenderH = [{ name: fallbackName, qty: null, unit_price: null, amount: null }];
-    }
-    if (itemsToRenderH.length === 0 && firstRow.mainItem) {
-      itemsToRenderH = [{ name: firstRow.mainItem, qty: null, unit_price: null, amount: null }];
+  // 整理品項
+  let itemsH = [];
+  if (_itemsFullH.length > 0) itemsH = _itemsFullH;
+  else if (_itemsListH.length > 0) itemsH = _itemsListH.map(name => ({ name, qty: null, unit_price: null, amount: null }));
+  else if (firstRow.voucherMainItem) itemsH = [{ name: firstRow.voucherMainItem, qty: null, unit_price: null, amount: null }];
+  else if (firstRow.aiReason) {
+    const m = String(firstRow.aiReason).match(/品項[:：]\s*([^；;,\n]+)/);
+    if (m) {
+      const parts = m[1].trim().split(/[、，,]/).map(s => s.trim()).filter(Boolean);
+      itemsH = parts.map(p => ({ name: p, qty: null, unit_price: null, amount: null }));
     }
   }
+  if (itemsH.length === 0 && firstRow.mainItem) itemsH = [{ name: firstRow.mainItem, qty: null, unit_price: null, amount: null }];
 
-  const itemsHtmlH = itemsToRenderH.map(it => {
-    const pretax = it.amount != null
-      ? Number(it.amount)
-      : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null);
-    const tax = pretax != null ? Math.round(pretax * 0.05) : null;
-    const total = (pretax != null && tax != null) ? (pretax + tax) : null;
-    return `<div style="display:grid;grid-template-columns:1.8fr 70px 90px 100px 90px 100px;gap:10px;align-items:center;background:rgba(255,255,255,.06);border-radius:6px;padding:7px 12px;margin-bottom:4px">
-      <span style="color:#fff;font-size:13px;font-weight:600;word-break:break-all">${it.name}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${_fmtH(it.qty)}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style="opacity:.3">—</span>'}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:14px">${_fmtH(pretax)}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${_fmtH(tax)}</span>
-      <span style="text-align:center;color:#fff;font-family:monospace;font-size:14px;font-weight:700">${_fmtH(total)}</span>
-    </div>`;
-  }).join('');
+  // 整張憑證一列：# / 日期 / 統編 / 品名 / 數量 / 單價 / 未稅 / 營業稅 / 含稅總額 / 結果 / AI說明
+  const rowNumsStr = matchedRowsWithIdx.map(({row: r}) => '#' + (r.excelRow || (r.idx != null ? r.idx + 1 : '?'))).join('<br>');
+  const datesStr = matchedRowsWithIdx.map(({row: r}) => r.date || '').filter(Boolean).join('<br>');
+  // 最壞狀態
+  const prioH = { '不正確': 3, '待確認': 2, '正確': 1, '': 0 };
+  const worstSt = matchedRowsWithIdx.reduce((w, {row: r}) => (prioH[r.status || ''] || 0) > (prioH[w] || 0) ? (r.status || '') : w, '');
+  const badgeClsH = worstSt === '正確' ? 'ok' : worstSt === '不正確' ? 'err' : worstSt === '待確認' ? 'wait' : 'none';
+  const badgeLabelH = worstSt === '正確' ? '✓ 正確' : worstSt === '不正確' ? '✗ 不正確' : worstSt === '待確認' ? '? 待確認' : '— 未匹配';
+  const reasonsH = matchedRowsWithIdx.map(({row: r}) => _formatAIReason(r.aiReason || '')).filter(Boolean).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${r}</div>`).join('');
 
-  // 對應 Excel 列摘要
-  const excelSummaryHtmlH = matchedRowsWithIdx.map(({ row: r, rowIdx }) => {
-    const status = r.status || '';
-    const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
-    const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '— 未匹配';
-    const amt = r.amount || 0;
-    const rowNum = r.excelRow || (r.idx != null ? r.idx + 1 : '?');
-    const dateStr = r.date || '';
-    return `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border-radius:6px;padding:5px 10px;margin:3px 4px 3px 0;font-size:12px;cursor:pointer" onclick="openHistStatusPicker(${histId},${rowIdx},'${safeVName}');event.stopPropagation()" title="點擊修改核對結果">
-      <span style="font-family:monospace;color:#93c5fd;font-weight:700">#${rowNum}</span>
-      <span style="color:rgba(255,255,255,.6)">${dateStr}</span>
-      <span style="color:#fbbf24;font-family:monospace;font-weight:700">${amt.toLocaleString()}</span>
-      <span class="hist-match-badge ${badgeCls}" style="font-size:11px">${badgeLabel}</span>
-    </div>`;
-  }).join('');
+  const namesHtmlH = itemsH.map(it => `<div>${it.name}</div>`).join('');
+  const qtysHtmlH = itemsH.map(it => `<div>${_fmtH(it.qty)}</div>`).join('');
+  const unitsHtmlH = itemsH.map(it => `<div>${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style=\"opacity:.35\">—</span>'}</div>`).join('');
+  const pretaxListH = itemsH.map(it => it.amount != null ? Number(it.amount) : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null));
+  const pretaxsHtmlH = pretaxListH.map(p => `<div>${_fmtH(p)}</div>`).join('');
+  const taxsHtmlH = pretaxListH.map(p => `<div>${_fmtH(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
+  const totalsHtmlH = pretaxListH.map(p => `<div>${_fmtH(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
+
+  const headerHtmlH = `<div class="hist-match-head">
+    <span>#</span>
+    <span>日期</span>
+    <span>統編</span>
+    <span>品名</span>
+    <span>數量</span>
+    <span>單價</span>
+    <span>未稅</span>
+    <span>營業稅</span>
+    <span>含稅總額</span>
+    <span>結果</span>
+    <span>AI 核對說明</span>
+  </div>`;
+
+  const singleRowHtmlH = `<div class="hist-match-row" style="cursor:default">
+    <span style="font-family:monospace;color:#93c5fd;font-weight:700;font-size:13px;text-align:center">${rowNumsStr || '—'}</span>
+    <span style="color:rgba(255,255,255,.85);font-size:13px;text-align:center">${datesStr || '<span style=\"opacity:.35\">—</span>'}</span>
+    <span style="color:#fff;font-family:monospace;font-size:13px;font-weight:700;text-align:center">${_taxIdH || '<span style=\"opacity:.35\">—</span>'}</span>
+    <div style="color:#fff;font-size:13px;font-weight:600;line-height:1.5">${namesHtmlH || '<span style=\"opacity:.35\">—</span>'}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${qtysHtmlH}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${unitsHtmlH}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${pretaxsHtmlH}</div>
+    <div style="color:#fff;font-family:monospace;font-size:13px;text-align:center;line-height:1.5">${taxsHtmlH}</div>
+    <div style="color:#fbbf24;font-family:monospace;font-size:14px;font-weight:700;text-align:center;line-height:1.5">${totalsHtmlH}</div>
+    <span class="hist-match-badge ${badgeClsH}" style="cursor:pointer;align-self:start" onclick="event.stopPropagation();openHistStatusPicker(${histId},${matchedRowsWithIdx[0]?.rowIdx || 0},'${safeVName}')">${badgeLabelH}</span>
+    <div class="hist-match-reason">${reasonsH || '<span style=\"opacity:.35\">—</span>'}</div>
+  </div>`;
 
   // 合計差額
-  const diffHtmlH = (_totalH != null)
-    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.8)">
-        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace">${_totalH.toLocaleString()}</b></span>
+  const sumPretaxH = pretaxListH.reduce((s, p) => s + (p || 0), 0);
+  const sumTotalH = sumPretaxH + Math.round(sumPretaxH * 0.05);
+  const diffHtmlH = (_totalH != null || sumTotalH > 0)
+    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85)">
+        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace">${(_totalH != null ? _totalH : sumTotalH).toLocaleString()}</b></span>
         <span style="margin-right:14px">Excel 合計：<b style="color:#93c5fd;font-family:monospace">${excelSumH.toLocaleString()}</b></span>
-        <span>差額：<b style="color:${Math.abs(_totalH - excelSumH) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${(_totalH - excelSumH).toLocaleString()}</b></span>
+        <span>差額：<b style="color:${Math.abs((_totalH != null ? _totalH : sumTotalH) - excelSumH) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${((_totalH != null ? _totalH : sumTotalH) - excelSumH).toLocaleString()}</b></span>
       </div>`
     : '';
 
-  const taxIdHtmlH = _taxIdH
-    ? `<div style="display:inline-block;margin-bottom:8px;padding:3px 12px;background:#1e3a5f;color:#fff;border:1px solid #fbbf24;border-radius:6px;font-size:12px;font-weight:800;font-family:monospace">統編：${_taxIdH}</div>`
-    : '';
-
-  content.innerHTML = `
-    ${taxIdHtmlH}
-    <div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:4px">📦 憑證品項明細</div>
-    ${headerHtmlH}
-    ${itemsHtmlH || '<div style="color:rgba(255,255,255,.3);padding:8px;text-align:center;font-size:12px">（無品項資料）</div>'}
-    ${diffHtmlH}
-    <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:8px"><div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:5px">📋 對應 Excel 明細列</div>${excelSummaryHtmlH}</div>
-  `;
+  content.innerHTML = headerHtmlH + singleRowHtmlH + diffHtmlH;
 }
 
 // ════════════════════════════════════════════════════════════
