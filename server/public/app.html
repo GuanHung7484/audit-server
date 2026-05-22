@@ -7550,18 +7550,14 @@ function renderHistoryList() {
       const totalAmt = r.amount || 0;  // Excel 金額視為含稅總額
       let vPretax = r.voucherPretax;
       let vTax = r.voucherTax;
-      let isCalc = false;  // 若 AI 沒抓到，從含稅總額推算（台灣 5% 營業稅）
+      // 若 AI 沒抓到（舊紀錄）→ 從含稅總額自動推算（台灣 5% 營業稅）
       if ((vPretax == null || vTax == null) && totalAmt > 0) {
         if (vPretax == null) vPretax = Math.round(totalAmt / 1.05);
         if (vTax == null) vTax = totalAmt - vPretax;
-        isCalc = true;
       }
-      const fmtAmt = (n, calc) => {
+      const fmtAmt = (n) => {
         if (n == null || n === '') return '<span style="color:#cbd5e0">—</span>';
-        const num = Number(n).toLocaleString();
-        return calc
-          ? `<span style="color:#94a3b8;font-style:italic" title="從含稅總額推算（5% 營業稅）">≈${num}</span>`
-          : num;
+        return Number(n).toLocaleString();
       };
       // 統一的金額 cell 樣式（避免視覺不對齊）
       const amtStyleBase = "text-align:center;font-family:monospace;font-size:14px;vertical-align:middle;";
@@ -7570,8 +7566,8 @@ function renderHistoryList() {
         <td>${r.sheet}</td>
         <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
         <td style="font-weight:700;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.mainItem}">${r.mainItem}</td>
-        <td style="${amtStyleBase}color:#4a5568" title="未稅金額">${fmtAmt(vPretax, isCalc)}</td>
-        <td style="${amtStyleBase}color:#4a5568" title="營業稅">${fmtAmt(vTax, isCalc)}</td>
+        <td style="${amtStyleBase}color:#4a5568" title="未稅金額">${fmtAmt(vPretax)}</td>
+        <td style="${amtStyleBase}color:#4a5568" title="營業稅">${fmtAmt(vTax)}</td>
         <td style="${amtStyleBase}font-weight:700;color:#1a202c" title="含稅總額">${totalAmt.toLocaleString()}</td>
         <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
         <td class="hd-reason ${reasonCls}" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
