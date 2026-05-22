@@ -1709,7 +1709,11 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
   </div>
   <!-- ★ 對應支出明細 AI 核對結果列 -->
   <div class="rm-match-bar" id="rmMatchBar" onclick="event.stopPropagation()">
-    <div class="rm-match-bar-title">📋 對應支出明細 AI 核對結果　<span style="font-weight:400;opacity:.6">（點選明細列同步 AI 面板；右側按鈕可直接修改核對狀態）</span></div>
+    <div class="rm-match-bar-title">
+      📋 對應支出明細 AI 核對結果
+      <span id="rmTaxIdBadge" style="display:none;margin-left:10px;padding:2px 10px;background:#1e3a5f;color:#fbbf24;border:1px solid #fbbf24;border-radius:6px;font-size:12px;font-weight:800;font-family:monospace">統編：<span id="rmTaxIdValue"></span></span>
+      <span style="font-weight:400;opacity:.6;margin-left:8px">（點選明細列同步 AI 面板）</span>
+    </div>
     <div id="rmMatchContent"><div class="rm-no-match">此憑證尚無對應支出明細</div></div>
   </div>
   <div style="color:rgba(255,255,255,.4);font-size:10px;margin-top:-4px">← → 切換憑證　　滾輪/按鈕 縮放　　Esc 關閉</div>
@@ -1784,7 +1788,10 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
     </div>
     <!-- ★ 對應支出明細 AI 核對結果 -->
     <div class="hist-match-bar" id="histMatchBar" onclick="event.stopPropagation()">
-      <div class="hist-match-bar-title">📋 對應支出明細 AI 核對結果</div>
+      <div class="hist-match-bar-title">
+        📋 對應支出明細 AI 核對結果
+        <span id="histTaxIdBadge" style="display:none;margin-left:10px;padding:2px 10px;background:#1e3a5f;color:#fbbf24;border:1px solid #fbbf24;border-radius:6px;font-size:12px;font-weight:800;font-family:monospace">統編：<span id="histTaxIdValue"></span></span>
+      </div>
       <div id="histMatchContent"><div class="hist-no-match">此憑證尚無對應支出明細</div></div>
     </div>
     <div style="color:rgba(255,255,255,.4);font-size:11px;text-align:center;margin-top:-2px">← → 切換憑證　　滾輪 / + - 縮放　　Esc 關閉</div>
@@ -4559,6 +4566,19 @@ function renderReceiptMatchBar(voucherIdx) {
   const _vPretaxRm = _vmRm.invPretax;
   const _vTaxRm = _vmRm.invTax;
   const _vMainItemRm = _vmRm.invMainItem || '';
+  // ★ 顯示統編 badge 在標題列
+  try {
+    const tib = document.getElementById('rmTaxIdBadge');
+    const tiv = document.getElementById('rmTaxIdValue');
+    if (tib && tiv) {
+      if (_vmRm.invTaxId) {
+        tiv.textContent = _vmRm.invTaxId;
+        tib.style.display = 'inline-block';
+      } else {
+        tib.style.display = 'none';
+      }
+    }
+  } catch(_){}
 
   const rowsHtml = matched.map(({ r, chk, displayNum, fi, corrKey }) => {
     const amt = r.expense || r.income || 0;
@@ -4592,10 +4612,10 @@ function renderReceiptMatchBar(voucherIdx) {
         <div class="rm-match-item" title="${(_vMainItemRm ? '憑證品名：'+_vMainItemRm+'　／ Excel 主項目：' : '')}${r.mainItem||''}">${displayItem}</div>
         ${sub ? `<div class="rm-match-sub">${sub}</div>` : ''}
       </div>
-      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:13px">${_fmtN(_vp)}</span>
-      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:13px">${_fmtN(_vt)}</span>
-      <input type="number" value="${amt||''}" title="含稅總額（可修正）"
-        style="width:92px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fbbf24;font-size:15px;font-weight:700;padding:2px 4px;text-align:center;cursor:text;justify-self:center"
+      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vp)}</span>
+      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vt)}</span>
+      <input type="number" value="${amt||''}" title="含稅總額（可點擊修正）"
+        style="width:96px;background:transparent;border:1px dashed rgba(255,255,255,.15);border-radius:3px;color:#fbbf24;font-family:monospace;font-size:14px;font-weight:700;padding:1px 4px;text-align:center;cursor:text;justify-self:center;align-self:center"
         onclick="event.stopPropagation()"
         onchange="rmCorrectAmount('${corrKey}',this.value,${fi},${voucherIdx})">
       <span class="rm-match-badge ${badgeCls}">${badgeLabel}</span>
@@ -5851,19 +5871,54 @@ async function callGeminiVision(token, file, filename) {
 若有總稅額（如 325），把總稅額填入 tax_amount。
 這樣系統可自動計算「品項加總 × 1.05 = 含稅總計」並交叉驗證。
 
-▍★★★ 規則 7：統一編號（買方統編）擷取 ★★★
-請仔細搜尋憑證上的「統一編號 / 統編 / 買受人統編 / 買方統編」欄位（通常位於憑證右上方，買受人/客戶資料區）：
-- 填入 buyer_tax_id 欄位（**8 位數字格式**，例：60621561、93551400）
-- 注意：發票上會有「賣方」與「買方」兩個統編，**我們只要「買方統一編號」**（也就是憑證接收方/客戶的統編）
-- 範例 1：「買受人 小鵲信實業有限公司 統一編號 93551400」→ buyer_tax_id = "93551400"
-- 範例 2：「買方 60621561」→ buyer_tax_id = "60621561"
-- 範例 3：收據沒有統編欄位 → buyer_tax_id = null
-- 範例 4：電信/水電帳單不一定有統編，找不到就填 null
-- ★ 統編必須是純數字 8 位，若看到「2611-49011」或類似格式請去除符號後填純數字
+▍★★★★★ 規則 7：統一編號（買方統編）擷取 — 極重要必抓 ★★★★★
+請務必、務必、務必仔細搜尋憑證上**任何 8 位數字的統一編號**：
+- 填入 buyer_tax_id 欄位（**8 位數字格式**，例：60621561、93551400、26159047）
+- 搜尋關鍵字：「統一編號」「統編」「買受人統編」「買方統編」「客戶統一編號」「C:」「統編：」「BAN」
+- 通常位置：憑證右上方、買受人/客戶資料區、收據開頭客戶資料、發票右側方框
 
-▍★★★ 規則 6：品名 / 品項擷取（次要匹配依據）★★★
+★ 收銀機電子發票特別注意：
+  收銀機發票上常有「統一編號：93551400」或「統一編號 93551400」這種格式
+  也可能是手寫的 8 位數字寫在客戶資料區
+  ★ **這個必須抓到！** 是查帳審核最重要的依據
+
+★ 三聯式統一發票：
+  右上方買受人區域必有「統一編號 ___」欄位，填寫對應的 8 位數字
+
+★ 範例：
+  - 「買受人 小鵲信實業有限公司 統一編號 93551400」→ buyer_tax_id = "93551400"
+  - 「C:26159047 TEL:03-5329820」→ buyer_tax_id = "26159047"（C: 後面 8 位數字就是統編）
+  - 「BAN:60621561」→ buyer_tax_id = "60621561"
+  - 「統編：93551400」→ buyer_tax_id = "93551400"
+
+★ 不要混淆：
+  - 「發票號碼 AA34343133」→ 這是 invoice_no，不是統編
+  - 「序號 0353」→ 不是統編
+  - 「機號 001」→ 不是統編
+  - 「店號」「員工編號」等其他編號 → 不是統編
+  - 只有 **8 位數字** 且在「買受人」「客戶」資料區的才是 buyer_tax_id
+
+★ 統編必須是純數字 8 位，若看到「2611-49011」或類似格式請去除符號後填純數字
+★ 找不到才填 null（請盡力尋找，不要輕易放棄）
+
+▍★★★★★ 規則 6：品名 / 品項擷取（必填，與 Excel 主項目不同！）★★★★★
 請逐項抓取憑證上「品名 / 商品名稱 / 項目 / 品項」欄位的文字，全部填到 items[].name 陣列裡。
-另外，把「最主要的品名」（通常是第一個品項，或金額最大的品項）獨立填入 main_item_name 欄位。
+另外，把「最主要的品名」（通常是第一個品項，或金額最大的品項）**獨立填入 main_item_name 欄位**。
+
+★ main_item_name **必須填**（電信/水電/健保帳單例外可以填 null）！
+
+★ 範例：
+  - 收銀機發票寫「一般殼皮罩入電 1*1 18T」「130元小殼盤-皮 *1 135T」
+    → main_item_name = "一般殼皮罩入電"（第一個品項）
+    → items = [{name:"一般殼皮罩入電",...}, {name:"130元小殼盤-皮",...}]
+  - 銷貨單寫「殺菌全蛋液新鮮屋」
+    → main_item_name = "殺菌全蛋液新鮮屋"
+  - 三聯式發票寫「格力冷氣 GKS-105HO」
+    → main_item_name = "格力冷氣"
+
+★ 重要：main_item_name 必須是憑證上**實際看到的產品名**，
+   不要憑空寫「雜項」「五金器皿」「銷貨」這種類別名稱
+   不要寫商店名稱（如「巨城」「家樂福」）作為品名
 
 優先順序：
 - 主要匹配依據：**未稅金額、營業稅、含稅總額、日期** ← 必須優先用這四個比對 Excel
@@ -7599,8 +7654,13 @@ function renderHistoryList() {
       };
       // 統一的金額 cell 樣式（避免視覺不對齊）
       const amtStyleBase = "text-align:center;font-family:monospace;font-size:14px;vertical-align:middle;";
-      // ★ 品名：優先顯示憑證上 AI 抓到的品名，沒有時 fallback 到 Excel 的 mainItem
-      const productName = r.voucherMainItem || r.mainItem || '';
+      // ★ 品名：優先顯示憑證上 AI 抓到的品名；舊紀錄若沒存則嘗試從 AI 核對說明的「品項：xxx」抓
+      let productName = r.voucherMainItem || '';
+      if (!productName && r.aiReason) {
+        const m = String(r.aiReason).match(/品項[:：]\s*([^；;,\n]+)/);
+        if (m) productName = m[1].trim().split(/[、，,]/)[0]; // 取第一個品項
+      }
+      if (!productName) productName = r.mainItem || '';  // 最終 fallback
       // ★ 統編顯示
       const taxIdCell = r.voucherTaxId
         ? `<span style="font-family:monospace;color:#2d3748;font-size:13px">${r.voucherTaxId}</span>`
@@ -7831,6 +7891,20 @@ function renderHistMatchBar(voucherName, histId) {
   }
 
   const safeVName = String(voucherName || '').replace(/'/g, "\\'");
+  // ★ 顯示統編 badge：從第一筆 matched row 找出 voucherTaxId
+  try {
+    const tib = document.getElementById('histTaxIdBadge');
+    const tiv = document.getElementById('histTaxIdValue');
+    if (tib && tiv) {
+      const firstTaxId = matchedRowsWithIdx.find(x => x.row.voucherTaxId)?.row.voucherTaxId;
+      if (firstTaxId) {
+        tiv.textContent = firstTaxId;
+        tib.style.display = 'inline-block';
+      } else {
+        tib.style.display = 'none';
+      }
+    }
+  } catch(_){}
   // 表頭（全部置中）
   const headerHtml = `<div class="hist-match-head">
     <span>#</span>
