@@ -642,11 +642,11 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-dtable th { background:#edf2f7; padding:10px 12px; text-align:center; font-size:14px; font-weight:700; color:#4a5568; white-space:nowrap; }
 .hist-dtable td { padding:9px 12px; border-bottom:1px solid #f0f4f8; vertical-align:middle; text-align:center; }
 /* 例外：金額靠右，主項目 / AI 核對說明 靠左以利閱讀 */
-/* 第 4 欄=主項目（靠左）；5/6/7 欄=金額三欄（靠右）；9 欄=AI 說明（靠左） */
+/* 第 4 欄=品名（靠左）；5/6/7 欄=金額三欄（置中）；9 欄=AI 說明（靠左） */
 .hist-dtable th:nth-child(4), .hist-dtable td:nth-child(4) { text-align:left; }
-.hist-dtable th:nth-child(5), .hist-dtable td:nth-child(5) { text-align:right; }
-.hist-dtable th:nth-child(6), .hist-dtable td:nth-child(6) { text-align:right; }
-.hist-dtable th:nth-child(7), .hist-dtable td:nth-child(7) { text-align:right; }
+.hist-dtable th:nth-child(5), .hist-dtable td:nth-child(5) { text-align:center; }
+.hist-dtable th:nth-child(6), .hist-dtable td:nth-child(6) { text-align:center; }
+.hist-dtable th:nth-child(7), .hist-dtable td:nth-child(7) { text-align:center; }
 .hist-dtable th:nth-child(9), .hist-dtable td:nth-child(9) { text-align:left; }
 .hist-dtable tr.hr-ok { border-left:4px solid #38a169; }
 .hist-dtable tr.hr-err { border-left:4px solid #e53e3e; }
@@ -5155,13 +5155,14 @@ async function runAutoVerifyOn(ctx) {
     const invDate  = inv.actual_payment_date || inv.date || null;
     const invItems = (inv.items || []).filter(it => it.name);
 
-    // ★ 立即把 AI 抓到的金額/日期/憑證類型存到 voucherMeta（供顯示時讀取，不論最後是否匹配）
+    // ★ 立即把 AI 抓到的金額/日期/憑證類型/品名存到 voucherMeta（供顯示時讀取，不論最後是否匹配）
     if (!voucherMeta[v.id]) voucherMeta[v.id] = {};
     voucherMeta[v.id].invTotal = invTotal;
     voucherMeta[v.id].invPretax = invPre;
     voucherMeta[v.id].invTax = invTax;
     voucherMeta[v.id].invDate = invDate;
     voucherMeta[v.id].invDocType = inv.doc_type || '';
+    voucherMeta[v.id].invMainItem = inv.main_item_name || (invItems[0] && invItems[0].name) || '';
 
     updateAuditProgress(vi + 1, total, `比對 ${v.name}（${invItems.length} 品項）`);
 
@@ -5827,6 +5828,21 @@ async function callGeminiVision(token, file, filename) {
 若憑證的「品項列表」每筆是「未稅」金額（如 3250、1625），請放入 items[].amount。
 若有總稅額（如 325），把總稅額填入 tax_amount。
 這樣系統可自動計算「品項加總 × 1.05 = 含稅總計」並交叉驗證。
+
+▍★★★ 規則 6：品名 / 品項擷取（次要匹配依據）★★★
+請逐項抓取憑證上「品名 / 商品名稱 / 項目 / 品項」欄位的文字，全部填到 items[].name 陣列裡。
+另外，把「最主要的品名」（通常是第一個品項，或金額最大的品項）獨立填入 main_item_name 欄位。
+
+優先順序：
+- 主要匹配依據：**未稅金額、營業稅、含稅總額、日期** ← 必須優先用這四個比對 Excel
+- 次要匹配依據：**品名（main_item_name）**← 當金額與日期都符合多筆 Excel 時，用品名輔助篩選
+- 品名可協助系統判斷該歸到哪個主項目（例如「冰淇淋基底粉」→ 雜項購置、「電子發票」→ 銷貨）
+
+抓取規範：
+- 品名統一抓主要產品名稱即可（如「百加得蘭姆酒50ml」「殺菌全蛋液新鮮屋」），不必抓品牌名、不必抓編號
+- 若品項包含 [品牌-產品] 結構，只保留產品名（例：「Bacardi-百加得蘭姆酒」→ 抓「百加得蘭姆酒」）
+- 若品項過多（>5 個），把 main_item_name 填最關鍵的那一個，其他放在 items[]
+- 若是電信/水電/健保帳單 → main_item_name 不需要填，留 null（讓系統用 doc_type 判斷）
 
 ═══════════════════════════════════════════════════
 
@@ -7540,9 +7556,9 @@ function renderHistoryList() {
         <td>${r.sheet}</td>
         <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
         <td style="font-weight:700;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.mainItem}">${r.mainItem}</td>
-        <td style="text-align:right;font-family:monospace;font-size:13px;color:#4a5568" title="憑證未稅金額">${fmtAmt(vPretax)}</td>
-        <td style="text-align:right;font-family:monospace;font-size:13px;color:#4a5568" title="憑證營業稅">${fmtAmt(vTax)}</td>
-        <td style="text-align:right;font-family:monospace;font-weight:700" title="Excel 含稅總額">${totalAmt.toLocaleString()}</td>
+        <td style="text-align:center;font-family:monospace;font-size:13px;color:#4a5568" title="憑證未稅金額">${fmtAmt(vPretax)}</td>
+        <td style="text-align:center;font-family:monospace;font-size:13px;color:#4a5568" title="憑證營業稅">${fmtAmt(vTax)}</td>
+        <td style="text-align:center;font-family:monospace;font-weight:700" title="Excel 含稅總額">${totalAmt.toLocaleString()}</td>
         <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
         <td class="hd-reason ${reasonCls}" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
         <td style="white-space:nowrap;">${voucherCell}</td>
@@ -7572,9 +7588,9 @@ function renderHistoryList() {
         <td style="color:#a8919b">—</td>
         <td style="color:#a8919b">—</td>
         <td style="font-weight:700;color:#800020;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${vn.replace(/"/g,'&quot;')}">📎 ${vn}</td>
-        <td style="text-align:right;color:#a8919b">—</td>
-        <td style="text-align:right;color:#a8919b">—</td>
-        <td style="text-align:right;color:#a8919b">—</td>
+        <td style="text-align:center;color:#a8919b">—</td>
+        <td style="text-align:center;color:#a8919b">—</td>
+        <td style="text-align:center;color:#a8919b">—</td>
         <td style="white-space:nowrap"><span class="hd-status st-unmatched" style="background:#800020;color:#fff;border:1px solid #5e0017;font-weight:800;padding:3px 9px;border-radius:5px">⚠ 未匹配憑證</span></td>
         <td class="hd-reason" style="color:#800020;font-weight:600">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
         <td style="white-space:nowrap;">
@@ -7627,7 +7643,7 @@ function renderHistoryList() {
       </div>
       <div class="hist-detail open" id="hdetail-${idx}">
         <table class="hist-dtable">
-          <thead><tr><th>#</th><th>月份</th><th>日期</th><th>主項目</th><th style="text-align:right">未稅金額</th><th style="text-align:right">營業稅</th><th style="text-align:right">含稅總額</th><th>結果</th><th>AI核對說明</th><th>憑證</th></tr></thead>
+          <thead><tr><th>#</th><th>月份</th><th>日期</th><th>品名</th><th style="text-align:center">未稅金額</th><th style="text-align:center">營業稅</th><th style="text-align:center">含稅總額</th><th>結果</th><th>AI核對說明</th><th>憑證</th></tr></thead>
           <tbody>${rowsHtml}${unmatchedRowsHtml}</tbody>
         </table>
         ${unmatchedVouchers.length > 0 ? `<div style="padding:8px 14px;background:#fff5f5;border-top:1px solid #feb2b2;font-size:12px;color:#c53030;font-weight:700">⚠ 共 ${unmatchedVouchers.length} 張未匹配憑證（顯示於上方紅色列），請人工檢視是否需要連結到某筆支出明細</div>` : ''}
