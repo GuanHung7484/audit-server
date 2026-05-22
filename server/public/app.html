@@ -589,10 +589,10 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .rm-match-bar { max-width:88vw; width:88vw; background:rgba(0,0,0,.6); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; margin-top:-4px; }
 .rm-match-bar-title { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
 /* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
-.rm-match-head { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.rm-match-head { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
 .rm-match-head > span { white-space:nowrap; text-align:center; }
 /* 資料列：改為 grid 配合上面 head；AI 核對說明可換行完整顯示 */
-.rm-match-row { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:8px 10px; margin-bottom:4px; cursor:default; }
+.rm-match-row { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:8px 10px; margin-bottom:4px; cursor:default; }
 .rm-match-row:last-child { margin-bottom:0; }
 .rm-match-num { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
 .rm-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
@@ -642,12 +642,13 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-dtable th { background:#edf2f7; padding:10px 12px; text-align:center; font-size:14px; font-weight:700; color:#4a5568; white-space:nowrap; }
 .hist-dtable td { padding:9px 12px; border-bottom:1px solid #f0f4f8; vertical-align:middle; text-align:center; }
 /* 例外：金額靠右，主項目 / AI 核對說明 靠左以利閱讀 */
-/* 第 4 欄=品名（靠左）；5/6/7 欄=金額三欄（置中）；9 欄=AI 說明（靠左） */
+/* 第 4 欄=品名（靠左）；5 欄=統編（置中）；6/7/8 欄=金額三欄（置中）；10 欄=AI 說明（靠左+右間距） */
 .hist-dtable th:nth-child(4), .hist-dtable td:nth-child(4) { text-align:left; }
 .hist-dtable th:nth-child(5), .hist-dtable td:nth-child(5) { text-align:center; }
 .hist-dtable th:nth-child(6), .hist-dtable td:nth-child(6) { text-align:center; }
 .hist-dtable th:nth-child(7), .hist-dtable td:nth-child(7) { text-align:center; }
-.hist-dtable th:nth-child(9), .hist-dtable td:nth-child(9) { text-align:left; }
+.hist-dtable th:nth-child(8), .hist-dtable td:nth-child(8) { text-align:center; }
+.hist-dtable th:nth-child(10), .hist-dtable td:nth-child(10) { text-align:left; padding-right:38px; }
 .hist-dtable tr.hr-ok { border-left:4px solid #38a169; }
 .hist-dtable tr.hr-err { border-left:4px solid #e53e3e; }
 .hist-dtable tr.hr-wait { border-left:4px solid #ecc94b; }
@@ -678,9 +679,9 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-match-bar { background:rgba(0,0,0,.45); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; width:100%; }
 .hist-match-bar-title { color:rgba(255,255,255,.5); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
 /* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
-.hist-match-head { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.hist-match-head { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
 .hist-match-head > span { white-space:nowrap; text-align:center; }
-.hist-match-row { display:grid; grid-template-columns:48px 100px 1fr 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:8px 10px; margin-bottom:4px; }
+.hist-match-row { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:8px 10px; margin-bottom:4px; }
 .hist-match-row:last-child { margin-bottom:0; }
 .hist-match-num  { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
 .hist-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
@@ -4544,11 +4545,20 @@ function renderReceiptMatchBar(voucherIdx) {
   const headerHtml = `<div class="rm-match-head">
     <span>#</span>
     <span>日期</span>
-    <span>主項目</span>
-    <span>金額</span>
+    <span>品名</span>
+    <span>未稅</span>
+    <span>營業稅</span>
+    <span>含稅總額</span>
     <span>結果</span>
     <span>AI 核對說明</span>
   </div>`;
+
+  // ★ 抓憑證 AI 資料（給未稅/營業稅顯示用）
+  const _vForRm = vouchers[voucherIdx];
+  const _vmRm = _vForRm ? (voucherMeta[_vForRm.id] || {}) : {};
+  const _vPretaxRm = _vmRm.invPretax;
+  const _vTaxRm = _vmRm.invTax;
+  const _vMainItemRm = _vmRm.invMainItem || '';
 
   const rowsHtml = matched.map(({ r, chk, displayNum, fi, corrKey }) => {
     const amt = r.expense || r.income || 0;
@@ -4556,9 +4566,18 @@ function renderReceiptMatchBar(voucherIdx) {
     const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
     const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '—';
     const dateStr  = r.payDate || r.date || '';
-    const mainItem = r.mainItem || '';
+    // ★ 品名：優先用憑證 AI 抓的品名，fallback 到 Excel mainItem
+    const displayItem = _vMainItemRm || r.mainItem || '';
     const sub      = (r.subItem || r.remark || '');
     const reason   = _formatAIReason(chk.aiReason || '');
+
+    // 未稅 / 營業稅：用 AI 抓的，沒有就從 amt 推算（5%）
+    let _vp = _vPretaxRm, _vt = _vTaxRm;
+    if ((_vp == null || _vt == null) && amt > 0) {
+      if (_vp == null) _vp = Math.round(amt / 1.05);
+      if (_vt == null) _vt = amt - _vp;
+    }
+    const _fmtN = (n) => (n == null) ? '<span style="opacity:.3">—</span>' : Number(n).toLocaleString();
 
     return `<div class="rm-match-row" style="cursor:pointer" onclick="rmSelectRow(${fi},${voucherIdx})">
       <input type="text" value="${displayNum}" title="列號（可修正）"
@@ -4570,11 +4589,13 @@ function renderReceiptMatchBar(voucherIdx) {
         onclick="event.stopPropagation()"
         onchange="rmCorrectDate('${corrKey}',this.value,${fi},${voucherIdx})">
       <div>
-        <div class="rm-match-item">${mainItem}</div>
+        <div class="rm-match-item" title="${(_vMainItemRm ? '憑證品名：'+_vMainItemRm+'　／ Excel 主項目：' : '')}${r.mainItem||''}">${displayItem}</div>
         ${sub ? `<div class="rm-match-sub">${sub}</div>` : ''}
       </div>
-      <input type="number" value="${amt||''}" title="金額（可修正）"
-        style="width:92px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fbbf24;font-size:15px;font-weight:700;padding:2px 4px;text-align:right;cursor:text;justify-self:end"
+      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:13px">${_fmtN(_vp)}</span>
+      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:13px">${_fmtN(_vt)}</span>
+      <input type="number" value="${amt||''}" title="含稅總額（可修正）"
+        style="width:92px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#fbbf24;font-size:15px;font-weight:700;padding:2px 4px;text-align:center;cursor:text;justify-self:center"
         onclick="event.stopPropagation()"
         onchange="rmCorrectAmount('${corrKey}',this.value,${fi},${voucherIdx})">
       <span class="rm-match-badge ${badgeCls}">${badgeLabel}</span>
@@ -5155,7 +5176,7 @@ async function runAutoVerifyOn(ctx) {
     const invDate  = inv.actual_payment_date || inv.date || null;
     const invItems = (inv.items || []).filter(it => it.name);
 
-    // ★ 立即把 AI 抓到的金額/日期/憑證類型/品名存到 voucherMeta（供顯示時讀取，不論最後是否匹配）
+    // ★ 立即把 AI 抓到的金額/日期/憑證類型/品名/統編存到 voucherMeta（供顯示時讀取，不論最後是否匹配）
     if (!voucherMeta[v.id]) voucherMeta[v.id] = {};
     voucherMeta[v.id].invTotal = invTotal;
     voucherMeta[v.id].invPretax = invPre;
@@ -5163,6 +5184,7 @@ async function runAutoVerifyOn(ctx) {
     voucherMeta[v.id].invDate = invDate;
     voucherMeta[v.id].invDocType = inv.doc_type || '';
     voucherMeta[v.id].invMainItem = inv.main_item_name || (invItems[0] && invItems[0].name) || '';
+    voucherMeta[v.id].invTaxId = inv.buyer_tax_id || '';
 
     updateAuditProgress(vi + 1, total, `比對 ${v.name}（${invItems.length} 品項）`);
 
@@ -5829,6 +5851,16 @@ async function callGeminiVision(token, file, filename) {
 若有總稅額（如 325），把總稅額填入 tax_amount。
 這樣系統可自動計算「品項加總 × 1.05 = 含稅總計」並交叉驗證。
 
+▍★★★ 規則 7：統一編號（買方統編）擷取 ★★★
+請仔細搜尋憑證上的「統一編號 / 統編 / 買受人統編 / 買方統編」欄位（通常位於憑證右上方，買受人/客戶資料區）：
+- 填入 buyer_tax_id 欄位（**8 位數字格式**，例：60621561、93551400）
+- 注意：發票上會有「賣方」與「買方」兩個統編，**我們只要「買方統一編號」**（也就是憑證接收方/客戶的統編）
+- 範例 1：「買受人 小鵲信實業有限公司 統一編號 93551400」→ buyer_tax_id = "93551400"
+- 範例 2：「買方 60621561」→ buyer_tax_id = "60621561"
+- 範例 3：收據沒有統編欄位 → buyer_tax_id = null
+- 範例 4：電信/水電帳單不一定有統編，找不到就填 null
+- ★ 統編必須是純數字 8 位，若看到「2611-49011」或類似格式請去除符號後填純數字
+
 ▍★★★ 規則 6：品名 / 品項擷取（次要匹配依據）★★★
 請逐項抓取憑證上「品名 / 商品名稱 / 項目 / 品項」欄位的文字，全部填到 items[].name 陣列裡。
 另外，把「最主要的品名」（通常是第一個品項，或金額最大的品項）獨立填入 main_item_name 欄位。
@@ -5941,6 +5973,8 @@ async function callGeminiVision(token, file, filename) {
   "tax_amount": 稅額/營業稅（純數字，若無填 null）,
   "item_amount": 費用或商品小計（不含稅，若無填 null）,
   "actual_payment_date": "MM/DD 格式的手寫實際付款日（看到「實際付款為」「實付」「實收」「付款日」等手寫日期就填，否則填 null）",
+  "main_item_name": "★ 憑證上的主要品名（最關鍵的那個產品名稱，例：「燈具」「殺菌全蛋液」「百加得蘭姆酒50ml」；不要含品牌名/編號；電信/水電/健保帳單填 null）",
+  "buyer_tax_id": "★ 買方統一編號（8 位數字，例：60621561；通常在憑證右上「買受人 / 統一編號」欄位旁邊；若無填 null）",
   "items": [{"name":"費用項目或品名","spec":"","qty":null,"unit_price":null,"amount":金額或null}]
 }
 
@@ -6098,6 +6132,8 @@ async function extractInvoiceData(base64, mediaType) {
   "tax_amount": 稅額/營業稅（純數字，若無填 null）,
   "item_amount": 費用或商品小計（不含稅，若無填 null）,
   "actual_payment_date": "MM/DD 格式的手寫實際付款日（看到「實際付款為」「實付」「實收」「付款日」等手寫日期就填，否則填 null）",
+  "main_item_name": "★ 憑證上的主要品名（最關鍵的那個產品名稱，例：「燈具」「殺菌全蛋液」「百加得蘭姆酒50ml」；不要含品牌名/編號；電信/水電/健保帳單填 null）",
+  "buyer_tax_id": "★ 買方統一編號（8 位數字，例：60621561；通常在憑證右上「買受人 / 統一編號」欄位旁邊；若無填 null）",
   "items": [{"name":"費用項目或品名","spec":"","qty":null,"unit_price":null,"amount":金額或null}]
 }
 
@@ -7347,11 +7383,13 @@ async function saveAuditToHistory(okRows, errRows, waitRows) {
         status: chk.status || r.status || '',
         aiReason: r.aiReason || chk.aiReason || '',
         voucherName: vn,
-        // ★ 從憑證 AI 抓取的金額三欄（供顯示用）
+        // ★ 從憑證 AI 抓取的資料（供顯示用）
         voucherPretax: vm.invPretax != null ? Number(vm.invPretax) : null,
         voucherTax: vm.invTax != null ? Number(vm.invTax) : null,
         voucherTotal: vm.invTotal != null ? Number(vm.invTotal) : null,
-        voucherDocType: vm.invDocType || ''
+        voucherDocType: vm.invDocType || '',
+        voucherMainItem: vm.invMainItem || '',
+        voucherTaxId: vm.invTaxId || ''
       };
     })
   };
@@ -7561,16 +7599,23 @@ function renderHistoryList() {
       };
       // 統一的金額 cell 樣式（避免視覺不對齊）
       const amtStyleBase = "text-align:center;font-family:monospace;font-size:14px;vertical-align:middle;";
+      // ★ 品名：優先顯示憑證上 AI 抓到的品名，沒有時 fallback 到 Excel 的 mainItem
+      const productName = r.voucherMainItem || r.mainItem || '';
+      // ★ 統編顯示
+      const taxIdCell = r.voucherTaxId
+        ? `<span style="font-family:monospace;color:#2d3748;font-size:13px">${r.voucherTaxId}</span>`
+        : `<span style="color:#cbd5e0">—</span>`;
       return `<tr class="${cls}">
         <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700" title="點擊修改 # 行號" onclick="editHistRowField(${id},${originalIdx},'excelRow',this)">${rowNum}</td>
         <td>${r.sheet}</td>
         <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
-        <td style="font-weight:700;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.mainItem}">${r.mainItem}</td>
+        <td style="font-weight:700;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${productName}（Excel 主項目：${r.mainItem||''}）">${productName}</td>
+        <td style="text-align:center" title="憑證統一編號">${taxIdCell}</td>
         <td style="${amtStyleBase}color:#4a5568" title="未稅金額">${fmtAmt(vPretax)}</td>
         <td style="${amtStyleBase}color:#4a5568" title="營業稅">${fmtAmt(vTax)}</td>
         <td style="${amtStyleBase}font-weight:700;color:#1a202c" title="含稅總額">${totalAmt.toLocaleString()}</td>
         <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
-        <td class="hd-reason ${reasonCls}" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
+        <td class="hd-reason ${reasonCls}" style="padding-right:38px" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
         <td style="white-space:nowrap;">${voucherCell}</td>
       </tr>`;
     }).join('');
@@ -7601,8 +7646,9 @@ function renderHistoryList() {
         <td style="text-align:center;color:#a8919b">—</td>
         <td style="text-align:center;color:#a8919b">—</td>
         <td style="text-align:center;color:#a8919b">—</td>
+        <td style="text-align:center;color:#a8919b">—</td>
         <td style="white-space:nowrap"><span class="hd-status st-unmatched" style="background:#800020;color:#fff;border:1px solid #5e0017;font-weight:800;padding:3px 9px;border-radius:5px">⚠ 未匹配憑證</span></td>
-        <td class="hd-reason" style="color:#800020;font-weight:600">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
+        <td class="hd-reason" style="color:#800020;font-weight:600;padding-right:38px">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
         <td style="white-space:nowrap;">
           <button class="hist-eye-btn" style="background:#fce7eb;border:1px solid #c08191;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#800020;font-weight:700"
             onclick="showHistVoucherImg(event,'${vn.replace(/'/g,"\\'")}',${id})" title="${vn}">👁 查看</button>
@@ -7653,7 +7699,7 @@ function renderHistoryList() {
       </div>
       <div class="hist-detail open" id="hdetail-${idx}">
         <table class="hist-dtable">
-          <thead><tr><th>#</th><th>月份</th><th>日期</th><th>品名</th><th style="text-align:center">未稅金額</th><th style="text-align:center">營業稅</th><th style="text-align:center">含稅總額</th><th>結果</th><th>AI核對說明</th><th>憑證</th></tr></thead>
+          <thead><tr><th>#</th><th>月份</th><th>日期</th><th>品名</th><th style="text-align:center">統編</th><th style="text-align:center">未稅金額</th><th style="text-align:center">營業稅</th><th style="text-align:center">含稅總額</th><th>結果</th><th style="padding-right:38px">AI核對說明</th><th>憑證</th></tr></thead>
           <tbody>${rowsHtml}${unmatchedRowsHtml}</tbody>
         </table>
         ${unmatchedVouchers.length > 0 ? `<div style="padding:8px 14px;background:#fff5f5;border-top:1px solid #feb2b2;font-size:12px;color:#c53030;font-weight:700">⚠ 共 ${unmatchedVouchers.length} 張未匹配憑證（顯示於上方紅色列），請人工檢視是否需要連結到某筆支出明細</div>` : ''}
@@ -7789,8 +7835,10 @@ function renderHistMatchBar(voucherName, histId) {
   const headerHtml = `<div class="hist-match-head">
     <span>#</span>
     <span>日期</span>
-    <span>主項目</span>
-    <span>金額</span>
+    <span>品名</span>
+    <span>未稅</span>
+    <span>營業稅</span>
+    <span>含稅總額</span>
     <span>結果</span>
     <span>AI 核對說明</span>
   </div>`;
@@ -7803,13 +7851,25 @@ function renderHistMatchBar(voucherName, histId) {
     const amt = r.amount || 0;
     const rowNum = r.excelRow || (r.idx != null ? r.idx + 1 : '?');
     const dateStr = r.date || '';
+    // ★ 品名：優先用憑證 AI 抓的品名，fallback 到 Excel mainItem
+    const displayItem = r.voucherMainItem || r.mainItem || '';
+    // ★ 未稅/營業稅：用 AI 抓的，沒有就推算（5%）
+    let vP = r.voucherPretax, vT = r.voucherTax;
+    if ((vP == null || vT == null) && amt > 0) {
+      if (vP == null) vP = Math.round(amt / 1.05);
+      if (vT == null) vT = amt - vP;
+    }
+    const _fmtH = (n) => (n == null) ? '<span style="opacity:.3">—</span>' : Number(n).toLocaleString();
+
     return `<div class="hist-match-row">
       <span class="hist-match-num" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改 # 行號" onclick="editHistMatchField(${histId},${rowIdx},'excelRow',this,'${safeVName}')">#${rowNum}</span>
       <span class="hist-match-date" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改日期" onclick="editHistMatchField(${histId},${rowIdx},'date',this,'${safeVName}')">${dateStr}</span>
       <div>
-        <div class="hist-match-item">${r.mainItem || ''}</div>
+        <div class="hist-match-item" title="${(r.voucherMainItem ? '憑證品名：'+r.voucherMainItem+'　／ Excel 主項目：'+(r.mainItem||'') : (r.mainItem||''))}">${displayItem}</div>
         ${sub ? `<div class="hist-match-sub">${sub}</div>` : ''}
       </div>
+      <span style="text-align:center;color:rgba(255,255,255,.75);font-family:monospace;font-size:13px">${_fmtH(vP)}</span>
+      <span style="text-align:center;color:rgba(255,255,255,.75);font-family:monospace;font-size:13px">${_fmtH(vT)}</span>
       <span class="hist-match-amt">${amt ? amt.toLocaleString() : ''}</span>
       <span class="hist-match-badge ${badgeCls}" style="cursor:pointer" title="點擊修改核對結果" onclick="event.stopPropagation();openHistStatusPicker(${histId},${rowIdx},'${safeVName}')">${badgeLabel}</span>
       <span class="hist-match-reason">${reason}</span>
