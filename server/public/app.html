@@ -4391,34 +4391,28 @@ function filterVouchers(f, btn) {
 // ── Receipt Modal (table row image viewer) ──
 let receiptModalIdx = -1;  // 目前 modal 顯示的憑證在 vouchers 陣列中的索引
 
-// ── 以「憑證」為基準計算各狀態數量（同一張憑證即使連結多筆 row 也只算一次）──
-//    優先順序：不正確 > 待確認 > 正確 — 顯示最嚴重的狀態
-//    保證：vOk + vErr + vWait + vUnmatched === voucherList 去重後的長度
+// ── 計算各狀態的「列數」（與下方表格顯示的明細列一致）──
+//    匹配成功/異常/待確認：算 rows 陣列中有 status 的列數
+//    未匹配：算 voucherList 中沒連到任何 row 的憑證數（這也等於下方紅色列數）
 function _calcVoucherStats(entry) {
   const rows = (entry && entry.rows) || [];
   const vList = (entry && entry.voucherList) || [];
   const vListDedup = Array.from(new Set(vList.filter(Boolean)));
 
-  // 1. 對每張有 status 的 row 計算其憑證的最嚴重狀態
-  const prio = { '不正確': 3, '待確認': 2, '正確': 1 };
-  const vStatus = new Map();
+  // 算 rows 中各狀態的列數（一張憑證對應多筆明細時，會算多次）
+  let vOk = 0, vErr = 0, vWait = 0;
   rows.forEach(r => {
     if (!r.voucherName || !r.status) return;
-    const cur = vStatus.get(r.voucherName);
-    if (!cur || (prio[r.status] || 0) > (prio[cur] || 0)) {
-      vStatus.set(r.voucherName, r.status);
-    }
+    if (r.status === '正確') vOk++;
+    else if (r.status === '不正確') vErr++;
+    else if (r.status === '待確認') vWait++;
   });
 
-  // 2. 以 voucherList 為主迭代，每張憑證查狀態 — 確保總和 = voucherList.length
-  let vOk = 0, vErr = 0, vWait = 0, vUnmatched = 0;
-  vListDedup.forEach(vn => {
-    const s = vStatus.get(vn);
-    if (s === '正確') vOk++;
-    else if (s === '不正確') vErr++;
-    else if (s === '待確認') vWait++;
-    else vUnmatched++;  // 沒狀態 或 沒連到任何 row → 都算未匹配
-  });
+  // 未匹配：voucherList 中沒被連結到的憑證數（= 下方紅色列數）
+  const linked = new Set();
+  rows.forEach(r => { if (r.voucherName) linked.add(r.voucherName); });
+  const vUnmatched = vListDedup.filter(vn => !linked.has(vn)).length;
+
   return { vOk, vErr, vWait, vUnmatched };
 }
 
@@ -7689,7 +7683,6 @@ function renderHistoryList() {
           <span class="hbadge hb-none" title="${vUnmatched} 張憑證未匹配（顯示於下方酒紅色列）"><span class="hb-label">未匹配</span><span class="hb-num">${vUnmatched}</span></span>
         </span>
         <button onclick="event.stopPropagation();openReassignClient(${id})" title="重新指派客戶" style="background:#fef0d8;border:1px solid #d4a258;color:#5b2c0c;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">← 重新指派</button>
-        <button onclick="event.stopPropagation();reanalyzeAllVouchers(${id},this)" title="重新對所有舊憑證跑 AI 分析（補齊統編、完整品項、未稅、營業稅）" style="background:#e0f2fe;border:1px solid #7dd3fc;color:#0369a1;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">🔄 重新分析全部憑證</button>
         <button onclick="event.stopPropagation();exportHistoryExcel(${id})" title="匯出此筆紀錄為 Excel" style="background:#ebf8ff;border:1px solid #bee3f8;color:#2b6cb0;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">📥 匯出</button>
         <button class="hist-rec-del" onclick="deleteHistoryEntry(${id},event)" title="刪除此記錄">🗑</button>
       </div>
