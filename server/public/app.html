@@ -642,9 +642,12 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-dtable th { background:#edf2f7; padding:10px 12px; text-align:center; font-size:14px; font-weight:700; color:#4a5568; white-space:nowrap; }
 .hist-dtable td { padding:9px 12px; border-bottom:1px solid #f0f4f8; vertical-align:middle; text-align:center; }
 /* 例外：金額靠右，主項目 / AI 核對說明 靠左以利閱讀 */
+/* 第 4 欄=主項目（靠左）；5/6/7 欄=金額三欄（靠右）；9 欄=AI 說明（靠左） */
 .hist-dtable th:nth-child(4), .hist-dtable td:nth-child(4) { text-align:left; }
 .hist-dtable th:nth-child(5), .hist-dtable td:nth-child(5) { text-align:right; }
-.hist-dtable th:nth-child(7), .hist-dtable td:nth-child(7) { text-align:left; }
+.hist-dtable th:nth-child(6), .hist-dtable td:nth-child(6) { text-align:right; }
+.hist-dtable th:nth-child(7), .hist-dtable td:nth-child(7) { text-align:right; }
+.hist-dtable th:nth-child(9), .hist-dtable td:nth-child(9) { text-align:left; }
 .hist-dtable tr.hr-ok { border-left:4px solid #38a169; }
 .hist-dtable tr.hr-err { border-left:4px solid #e53e3e; }
 .hist-dtable tr.hr-wait { border-left:4px solid #ecc94b; }
@@ -5152,6 +5155,14 @@ async function runAutoVerifyOn(ctx) {
     const invDate  = inv.actual_payment_date || inv.date || null;
     const invItems = (inv.items || []).filter(it => it.name);
 
+    // ★ 立即把 AI 抓到的金額/日期/憑證類型存到 voucherMeta（供顯示時讀取，不論最後是否匹配）
+    if (!voucherMeta[v.id]) voucherMeta[v.id] = {};
+    voucherMeta[v.id].invTotal = invTotal;
+    voucherMeta[v.id].invPretax = invPre;
+    voucherMeta[v.id].invTax = invTax;
+    voucherMeta[v.id].invDate = invDate;
+    voucherMeta[v.id].invDocType = inv.doc_type || '';
+
     updateAuditProgress(vi + 1, total, `比對 ${v.name}（${invItems.length} 品項）`);
 
     // ── ★ 電信帳單特殊處理 ──
@@ -5748,13 +5759,40 @@ async function callGeminiVision(token, file, filename) {
 - 簽名欄旁邊的手寫總額
 若憑證有「實際付款為 ___」「實收 ___」「實付 ___」這類手寫文字，那個就是 total_amount！
 
-▍規則 3：金額四欄位全部填寫（不要只填一個）
-- total_amount = 含稅總額（最重要，能找到就一定要填）
-- pretax_amount = 未稅金額/銷售額
-- tax_amount = 稅額/營業稅
+▍規則 3：★★★ 金額四欄位必填（嚴格規範）★★★
+- total_amount = 含稅總額（**最終付款金額**，最重要，一定要填）
+- pretax_amount = 未稅金額/銷售額/銷售金額/未稅銷售額（**含稅總額扣掉營業稅後的金額**）
+- tax_amount = 營業稅/稅額/應納稅額（**通常是未稅 × 5%**）
 - item_amount = 商品小計（不含稅）
-若憑證只有一個總額沒分稅，則 total_amount 填那個，pretax/tax 留 null。
-若憑證有「未稅 + 稅 = 總計」三欄，請三個都填，方便系統交叉驗證。
+
+★★ 必須遵守的數學關係（用於 AI 自我驗證）：
+  pretax_amount + tax_amount = total_amount
+  tax_amount ≈ pretax_amount × 0.05（台灣 5% 營業稅）
+
+★★ 多種憑證的填法範例：
+  範例 A（三聯式統一發票，明確分欄）：
+    印刷顯示：銷售額 1,000 / 稅額 50 / 總計 1,050
+    → pretax_amount=1000, tax_amount=50, total_amount=1050
+
+  範例 B（收銀機電子發票，含稅單價 105）：
+    印刷顯示：總計 1,050（含稅 5%）
+    → total_amount=1050, pretax_amount=1000（推算）, tax_amount=50（推算）
+    ★ 即使憑證未明示，也要主動推算 pretax 和 tax 來填入！
+
+  範例 C（收據/銷貨單，未稅）：
+    印刷顯示：合計 1,000
+    → 若有「未稅」字樣 → pretax_amount=1000, tax_amount=0/null, total_amount=1000
+    → 若無稅字樣 → 一律當作含稅 → total_amount=1000, pretax/tax 推算
+
+  範例 D（電信/水電/健保帳單）：
+    印刷顯示：應繳總金額 946
+    → total_amount=946, pretax_amount 與 tax_amount 留 null（這類帳單不適用 5% 規則）
+
+★★ 若憑證金額有不一致時的處理：
+  - 看到「銷售額 8,694」「總計 8,694」「實付 9,129」→ 應該是手寫「實付」優先 → total_amount=9129
+  - 找不到「總計/合計/應繳」→ 加總各品項金額作為 total_amount
+
+★★ 重要：pretax + tax 必須等於 total（誤差 ±1 元以內），否則表示讀錯，請重新檢查！
 
 ▍規則 4：日期擴大關鍵字搜尋（不只是「日期」二字）
 請搜尋以下任何字樣後面接的數字當作日期：
@@ -7274,7 +7312,9 @@ async function saveAuditToHistory(okRows, errRows, waitRows) {
     },
     rows: allRows.map(r => {
       const vi  = rowVoucherLinks[r.sheet + '_' + r.idx];
-      const vn  = (vi !== undefined && vouchers[vi]) ? vouchers[vi].name : '';
+      const v   = (vi !== undefined) ? vouchers[vi] : null;
+      const vn  = v ? v.name : '';
+      const vm  = v ? (voucherMeta[v.id] || {}) : {};
       const chk = (checks[r.sheet] || {})[r.idx] || {};
       // ★ 計算原始 Excel 行號（已過濾標題列、空列）
       const origExcelRow = (rowMapping[r.sheet] && rowMapping[r.sheet][r.idx] !== undefined)
@@ -7287,10 +7327,15 @@ async function saveAuditToHistory(okRows, errRows, waitRows) {
         date: r.payDate || r.date,
         mainItem: r.mainItem,
         subItem: r.subItem,
-        amount: r.expense || r.income || 0,
+        amount: r.expense || r.income || 0,    // ← Excel 上的金額（一律當作含稅總額）
         status: chk.status || r.status || '',
         aiReason: r.aiReason || chk.aiReason || '',
-        voucherName: vn
+        voucherName: vn,
+        // ★ 從憑證 AI 抓取的金額三欄（供顯示用）
+        voucherPretax: vm.invPretax != null ? Number(vm.invPretax) : null,
+        voucherTax: vm.invTax != null ? Number(vm.invTax) : null,
+        voucherTotal: vm.invTotal != null ? Number(vm.invTotal) : null,
+        voucherDocType: vm.invDocType || ''
       };
     })
   };
@@ -7485,12 +7530,19 @@ function renderHistoryList() {
         ? `<button class="hist-eye-btn" style="background:#ebf8ff;border:1px solid #bee3f8;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#2b6cb0;font-weight:700;"
             onclick="showHistVoucherImg(event,'${vName.replace(/'/g,"\\'")}',${id})" title="${vName}">👁 查看</button>`
         : `<span style="font-size:13px;color:#a0aec0;">📎無</span>`;
+      // ★ 新增三個金額欄位（未稅 / 營業稅 / 含稅總額）
+      const fmtAmt = (n) => (n == null || n === '') ? '<span style="color:#cbd5e0">—</span>' : Number(n).toLocaleString();
+      const vPretax = r.voucherPretax;
+      const vTax = r.voucherTax;
+      const totalAmt = r.amount || 0;  // Excel 金額視為含稅總額
       return `<tr class="${cls}">
         <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700" title="點擊修改 # 行號" onclick="editHistRowField(${id},${originalIdx},'excelRow',this)">${rowNum}</td>
         <td>${r.sheet}</td>
         <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
         <td style="font-weight:700;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.mainItem}">${r.mainItem}</td>
-        <td style="text-align:right;font-family:monospace;font-weight:700">${(r.amount||0).toLocaleString()}</td>
+        <td style="text-align:right;font-family:monospace;font-size:13px;color:#4a5568" title="憑證未稅金額">${fmtAmt(vPretax)}</td>
+        <td style="text-align:right;font-family:monospace;font-size:13px;color:#4a5568" title="憑證營業稅">${fmtAmt(vTax)}</td>
+        <td style="text-align:right;font-family:monospace;font-weight:700" title="Excel 含稅總額">${totalAmt.toLocaleString()}</td>
         <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
         <td class="hd-reason ${reasonCls}" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
         <td style="white-space:nowrap;">${voucherCell}</td>
@@ -7520,6 +7572,8 @@ function renderHistoryList() {
         <td style="color:#a8919b">—</td>
         <td style="color:#a8919b">—</td>
         <td style="font-weight:700;color:#800020;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${vn.replace(/"/g,'&quot;')}">📎 ${vn}</td>
+        <td style="text-align:right;color:#a8919b">—</td>
+        <td style="text-align:right;color:#a8919b">—</td>
         <td style="text-align:right;color:#a8919b">—</td>
         <td style="white-space:nowrap"><span class="hd-status st-unmatched" style="background:#800020;color:#fff;border:1px solid #5e0017;font-weight:800;padding:3px 9px;border-radius:5px">⚠ 未匹配憑證</span></td>
         <td class="hd-reason" style="color:#800020;font-weight:600">⚠ AI 找不到對應的支出明細列<br>→ 請人工檢視此憑證</td>
@@ -7573,7 +7627,7 @@ function renderHistoryList() {
       </div>
       <div class="hist-detail open" id="hdetail-${idx}">
         <table class="hist-dtable">
-          <thead><tr><th>#</th><th>月份</th><th>日期</th><th>主項目</th><th style="text-align:right">金額</th><th>結果</th><th>AI核對說明</th><th>憑證</th></tr></thead>
+          <thead><tr><th>#</th><th>月份</th><th>日期</th><th>主項目</th><th style="text-align:right">未稅金額</th><th style="text-align:right">營業稅</th><th style="text-align:right">含稅總額</th><th>結果</th><th>AI核對說明</th><th>憑證</th></tr></thead>
           <tbody>${rowsHtml}${unmatchedRowsHtml}</tbody>
         </table>
         ${unmatchedVouchers.length > 0 ? `<div style="padding:8px 14px;background:#fff5f5;border-top:1px solid #feb2b2;font-size:12px;color:#c53030;font-weight:700">⚠ 共 ${unmatchedVouchers.length} 張未匹配憑證（顯示於上方紅色列），請人工檢視是否需要連結到某筆支出明細</div>` : ''}
@@ -7696,7 +7750,11 @@ function renderHistMatchBar(voucherName, histId) {
   } catch(e) { /* ignore */ }
 
   if (matchedRowsWithIdx.length === 0) {
-    content.innerHTML = '<div class="hist-no-match">此憑證尚無對應支出明細</div>';
+    content.innerHTML = `<div class="hist-no-match" style="color:#fca5a5;background:#80002033;border:1px solid #800020;border-radius:6px;padding:10px 14px;font-style:normal;font-weight:700">
+      ⚠ <span style="color:#fff">AI 找不到此憑證對應的 Excel 支出明細</span><br>
+      <span style="font-size:11px;font-weight:500;opacity:.85;display:block;margin-top:4px">可能原因：① AI 無法辨識憑證金額/日期　② Excel 月份未對應到本張憑證的時間　③ 客戶上傳的 Excel 缺少此筆支出</span>
+      <span style="font-size:11px;font-weight:500;opacity:.85;display:block;margin-top:3px">→ 請人工檢視此憑證並決定是否手動連結到某筆支出明細</span>
+    </div>`;
     return;
   }
 
