@@ -589,10 +589,10 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .rm-match-bar { max-width:88vw; width:88vw; background:rgba(0,0,0,.6); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; margin-top:-4px; }
 .rm-match-bar-title { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
 /* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
-.rm-match-head { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.rm-match-head { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
 .rm-match-head > span { white-space:nowrap; text-align:center; }
 /* 資料列：改為 grid 配合上面 head；AI 核對說明可換行完整顯示 */
-.rm-match-row { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:8px 10px; margin-bottom:4px; cursor:default; }
+.rm-match-row { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.07); border-radius:6px; padding:8px 10px; margin-bottom:4px; cursor:default; }
 .rm-match-row:last-child { margin-bottom:0; }
 .rm-match-num { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
 .rm-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
@@ -679,9 +679,9 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-match-bar { background:rgba(0,0,0,.45); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; width:100%; }
 .hist-match-bar-title { color:rgba(255,255,255,.5); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
 /* 欄位標題列（# / 日期 / 主項目 / 金額 / 結果 / AI 核對說明）— 全部置中 */
-.hist-match-head { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
+.hist-match-head { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:center; padding:4px 10px; color:rgba(255,255,255,.65); font-size:13px; font-weight:800; letter-spacing:.4px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:4px; text-align:center; }
 .hist-match-head > span { white-space:nowrap; text-align:center; }
-.hist-match-row { display:grid; grid-template-columns:48px 100px 1fr 80px 80px 100px 100px 2fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:8px 10px; margin-bottom:4px; }
+.hist-match-row { display:grid; grid-template-columns:48px 90px 1.2fr 90px 70px 70px 90px 80px 1.8fr; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border-radius:6px; padding:8px 10px; margin-bottom:4px; }
 .hist-match-row:last-child { margin-bottom:0; }
 .hist-match-num  { color:rgba(255,255,255,.55); font-size:13px; font-weight:700; font-family:monospace; text-align:center; }
 .hist-match-date { color:rgba(255,255,255,.75); font-size:14px; text-align:center; }
@@ -1709,11 +1709,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
   </div>
   <!-- ★ 對應支出明細 AI 核對結果列 -->
   <div class="rm-match-bar" id="rmMatchBar" onclick="event.stopPropagation()">
-    <div class="rm-match-bar-title">
-      📋 對應支出明細 AI 核對結果
-      <span id="rmTaxIdBadge" style="display:none;margin-left:10px;padding:2px 10px;background:#1e3a5f;color:#fbbf24;border:1px solid #fbbf24;border-radius:6px;font-size:12px;font-weight:800;font-family:monospace">統編：<span id="rmTaxIdValue"></span></span>
-      <span style="font-weight:400;opacity:.6;margin-left:8px">（點選明細列同步 AI 面板）</span>
-    </div>
+    <div class="rm-match-bar-title">📋 對應支出明細 AI 核對結果　<span style="font-weight:400;opacity:.6">（點選明細列同步 AI 面板）</span></div>
     <div id="rmMatchContent"><div class="rm-no-match">此憑證尚無對應支出明細</div></div>
   </div>
   <div style="color:rgba(255,255,255,.4);font-size:10px;margin-top:-4px">← → 切換憑證　　滾輪/按鈕 縮放　　Esc 關閉</div>
@@ -1788,10 +1784,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
     </div>
     <!-- ★ 對應支出明細 AI 核對結果 -->
     <div class="hist-match-bar" id="histMatchBar" onclick="event.stopPropagation()">
-      <div class="hist-match-bar-title">
-        📋 對應支出明細 AI 核對結果
-        <span id="histTaxIdBadge" style="display:none;margin-left:10px;padding:2px 10px;background:#1e3a5f;color:#fbbf24;border:1px solid #fbbf24;border-radius:6px;font-size:12px;font-weight:800;font-family:monospace">統編：<span id="histTaxIdValue"></span></span>
-      </div>
+      <div class="hist-match-bar-title">📋 對應支出明細 AI 核對結果</div>
       <div id="histMatchContent"><div class="hist-no-match">此憑證尚無對應支出明細</div></div>
     </div>
     <div style="color:rgba(255,255,255,.4);font-size:11px;text-align:center;margin-top:-2px">← → 切換憑證　　滾輪 / + - 縮放　　Esc 關閉</div>
@@ -4553,6 +4546,7 @@ function renderReceiptMatchBar(voucherIdx) {
     <span>#</span>
     <span>日期</span>
     <span>品名</span>
+    <span>統編</span>
     <span>未稅</span>
     <span>營業稅</span>
     <span>含稅總額</span>
@@ -4560,25 +4554,15 @@ function renderReceiptMatchBar(voucherIdx) {
     <span>AI 核對說明</span>
   </div>`;
 
-  // ★ 抓憑證 AI 資料（給未稅/營業稅顯示用）
+  // ★ 抓憑證 AI 資料（給未稅/營業稅/統編/品名顯示用）
   const _vForRm = vouchers[voucherIdx];
   const _vmRm = _vForRm ? (voucherMeta[_vForRm.id] || {}) : {};
   const _vPretaxRm = _vmRm.invPretax;
   const _vTaxRm = _vmRm.invTax;
   const _vMainItemRm = _vmRm.invMainItem || '';
-  // ★ 顯示統編 badge 在標題列
-  try {
-    const tib = document.getElementById('rmTaxIdBadge');
-    const tiv = document.getElementById('rmTaxIdValue');
-    if (tib && tiv) {
-      if (_vmRm.invTaxId) {
-        tiv.textContent = _vmRm.invTaxId;
-        tib.style.display = 'inline-block';
-      } else {
-        tib.style.display = 'none';
-      }
-    }
-  } catch(_){}
+  const _vTaxIdRm = _vmRm.invTaxId || '';
+  // ★ 取出憑證所有品項（多品項時全部列出）
+  const _vAllItemsRm = (_vmRm.invItemsList && Array.isArray(_vmRm.invItemsList)) ? _vmRm.invItemsList.filter(Boolean) : [];
 
   const rowsHtml = matched.map(({ r, chk, displayNum, fi, corrKey }) => {
     const amt = r.expense || r.income || 0;
@@ -4586,8 +4570,13 @@ function renderReceiptMatchBar(voucherIdx) {
     const badgeCls = status === '正確' ? 'ok' : status === '不正確' ? 'err' : status === '待確認' ? 'wait' : 'none';
     const badgeLabel = status === '正確' ? '✓ 正確' : status === '不正確' ? '✗ 不正確' : status === '待確認' ? '? 待確認' : '—';
     const dateStr  = r.payDate || r.date || '';
-    // ★ 品名：優先用憑證 AI 抓的品名，fallback 到 Excel mainItem
-    const displayItem = _vMainItemRm || r.mainItem || '';
+    // ★ 品名：若憑證有多個品項全部列出，否則用 main_item_name 或 Excel mainItem
+    let displayItem;
+    if (_vAllItemsRm.length > 1) {
+      displayItem = _vAllItemsRm.map(it => `<div>${it}</div>`).join('');
+    } else {
+      displayItem = `<div>${_vMainItemRm || r.mainItem || ''}</div>`;
+    }
     const sub      = (r.subItem || r.remark || '');
     const reason   = _formatAIReason(chk.aiReason || '');
 
@@ -4608,10 +4597,11 @@ function renderReceiptMatchBar(voucherIdx) {
         style="width:90px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#d1fae5;font-size:13px;padding:2px 4px;text-align:center;cursor:text;justify-self:center"
         onclick="event.stopPropagation()"
         onchange="rmCorrectDate('${corrKey}',this.value,${fi},${voucherIdx})">
-      <div>
-        <div class="rm-match-item" title="${(_vMainItemRm ? '憑證品名：'+_vMainItemRm+'　／ Excel 主項目：' : '')}${r.mainItem||''}">${displayItem}</div>
+      <div class="rm-match-item" title="${(_vMainItemRm ? '憑證品名：'+_vMainItemRm+'　／ Excel 主項目：' : '')}${r.mainItem||''}">
+        ${displayItem}
         ${sub ? `<div class="rm-match-sub">${sub}</div>` : ''}
       </div>
+      <span style="text-align:center;color:#fbbf24;font-family:monospace;font-size:13px;font-weight:700;align-self:center;justify-self:center" title="憑證統編">${_vTaxIdRm || '<span style=\"opacity:.3\">—</span>'}</span>
       <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vp)}</span>
       <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vt)}</span>
       <input type="number" value="${amt||''}" title="含稅總額（可點擊修正）"
@@ -5205,6 +5195,8 @@ async function runAutoVerifyOn(ctx) {
     voucherMeta[v.id].invDocType = inv.doc_type || '';
     voucherMeta[v.id].invMainItem = inv.main_item_name || (invItems[0] && invItems[0].name) || '';
     voucherMeta[v.id].invTaxId = inv.buyer_tax_id || '';
+    // ★ 多品項：完整保存所有品項名稱，供顯示時逐行列出
+    voucherMeta[v.id].invItemsList = invItems.map(it => it && it.name).filter(Boolean);
 
     updateAuditProgress(vi + 1, total, `比對 ${v.name}（${invItems.length} 品項）`);
 
@@ -7444,7 +7436,8 @@ async function saveAuditToHistory(okRows, errRows, waitRows) {
         voucherTotal: vm.invTotal != null ? Number(vm.invTotal) : null,
         voucherDocType: vm.invDocType || '',
         voucherMainItem: vm.invMainItem || '',
-        voucherTaxId: vm.invTaxId || ''
+        voucherTaxId: vm.invTaxId || '',
+        voucherItems: vm.invItemsList || []  // ★ 全部品項
       };
     })
   };
@@ -7891,25 +7884,12 @@ function renderHistMatchBar(voucherName, histId) {
   }
 
   const safeVName = String(voucherName || '').replace(/'/g, "\\'");
-  // ★ 顯示統編 badge：從第一筆 matched row 找出 voucherTaxId
-  try {
-    const tib = document.getElementById('histTaxIdBadge');
-    const tiv = document.getElementById('histTaxIdValue');
-    if (tib && tiv) {
-      const firstTaxId = matchedRowsWithIdx.find(x => x.row.voucherTaxId)?.row.voucherTaxId;
-      if (firstTaxId) {
-        tiv.textContent = firstTaxId;
-        tib.style.display = 'inline-block';
-      } else {
-        tib.style.display = 'none';
-      }
-    }
-  } catch(_){}
-  // 表頭（全部置中）
+  // 表頭（全部置中，含統編欄）
   const headerHtml = `<div class="hist-match-head">
     <span>#</span>
     <span>日期</span>
     <span>品名</span>
+    <span>統編</span>
     <span>未稅</span>
     <span>營業稅</span>
     <span>含稅總額</span>
@@ -7925,8 +7905,23 @@ function renderHistMatchBar(voucherName, histId) {
     const amt = r.amount || 0;
     const rowNum = r.excelRow || (r.idx != null ? r.idx + 1 : '?');
     const dateStr = r.date || '';
-    // ★ 品名：優先用憑證 AI 抓的品名，fallback 到 Excel mainItem
-    const displayItem = r.voucherMainItem || r.mainItem || '';
+    // ★ 品名：若有多品項全部列出；舊紀錄無 voucherItems 則 fallback
+    let displayItem;
+    if (r.voucherItems && Array.isArray(r.voucherItems) && r.voucherItems.length > 1) {
+      displayItem = r.voucherItems.map(it => `<div>${it}</div>`).join('');
+    } else {
+      let pn = r.voucherMainItem || '';
+      if (!pn && r.aiReason) {
+        const m = String(r.aiReason).match(/品項[:：]\s*([^；;,\n]+)/);
+        if (m) pn = m[1].trim();
+      }
+      if (!pn) pn = r.mainItem || '';
+      // 從 reason 抓的可能有多項（用、分隔）
+      const parts = pn.split(/[、，,]/).map(s => s.trim()).filter(Boolean);
+      displayItem = parts.length > 1
+        ? parts.map(p => `<div>${p}</div>`).join('')
+        : `<div>${pn}</div>`;
+    }
     // ★ 未稅/營業稅：用 AI 抓的，沒有就推算（5%）
     let vP = r.voucherPretax, vT = r.voucherTax;
     if ((vP == null || vT == null) && amt > 0) {
@@ -7934,14 +7929,16 @@ function renderHistMatchBar(voucherName, histId) {
       if (vT == null) vT = amt - vP;
     }
     const _fmtH = (n) => (n == null) ? '<span style="opacity:.3">—</span>' : Number(n).toLocaleString();
+    const _vTaxIdH = r.voucherTaxId || '';
 
     return `<div class="hist-match-row">
       <span class="hist-match-num" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改 # 行號" onclick="editHistMatchField(${histId},${rowIdx},'excelRow',this,'${safeVName}')">#${rowNum}</span>
       <span class="hist-match-date" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="點擊修改日期" onclick="editHistMatchField(${histId},${rowIdx},'date',this,'${safeVName}')">${dateStr}</span>
-      <div>
-        <div class="hist-match-item" title="${(r.voucherMainItem ? '憑證品名：'+r.voucherMainItem+'　／ Excel 主項目：'+(r.mainItem||'') : (r.mainItem||''))}">${displayItem}</div>
+      <div class="hist-match-item">
+        ${displayItem}
         ${sub ? `<div class="hist-match-sub">${sub}</div>` : ''}
       </div>
+      <span style="text-align:center;color:#fbbf24;font-family:monospace;font-size:13px;font-weight:700" title="憑證統編">${_vTaxIdH || '<span style=\"opacity:.3\">—</span>'}</span>
       <span style="text-align:center;color:rgba(255,255,255,.75);font-family:monospace;font-size:13px">${_fmtH(vP)}</span>
       <span style="text-align:center;color:rgba(255,255,255,.75);font-family:monospace;font-size:13px">${_fmtH(vT)}</span>
       <span class="hist-match-amt">${amt ? amt.toLocaleString() : ''}</span>
@@ -8047,7 +8044,7 @@ function openHistStatusPicker(histId, rowIdx, voucherName) {
     { val: '正確',    label: '✓ 匹配成功',     bg: '#c6efce', color: '#1f5e2e', border: '#7cc594' },
     { val: '不正確',  label: '✗ 匹配異常',     bg: '#ffc7ce', color: '#8b0d18', border: '#f08591' },
     { val: '待確認',  label: '? 人工待確認',   bg: '#ffeb9c', color: '#7d5a00', border: '#d6b138' },
-    { val: '',        label: '— 未匹配',       bg: '#e2e8f0', color: '#475569', border: '#a3b1c5' },
+    { val: '',        label: '— 未匹配',       bg: '#800020', color: '#fff',    border: '#5e0017' },
   ];
 
   const overlay = document.createElement('div');
