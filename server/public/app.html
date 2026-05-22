@@ -4601,11 +4601,11 @@ function renderReceiptMatchBar(voucherIdx) {
         ${displayItem}
         ${sub ? `<div class="rm-match-sub">${sub}</div>` : ''}
       </div>
-      <span style="text-align:center;color:#fbbf24;font-family:monospace;font-size:13px;font-weight:700;align-self:center;justify-self:center" title="憑證統編">${_vTaxIdRm || '<span style=\"opacity:.3\">—</span>'}</span>
-      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vp)}</span>
-      <span style="text-align:center;color:#d1fae5;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vt)}</span>
+      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px;font-weight:700;align-self:center;justify-self:center" title="憑證統編">${_vTaxIdRm || '<span style=\"opacity:.3\">—</span>'}</span>
+      <span style="text-align:center;color:#fff;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vp)}</span>
+      <span style="text-align:center;color:#fff;font-family:monospace;font-size:14px;align-self:center;justify-self:center">${_fmtN(_vt)}</span>
       <input type="number" value="${amt||''}" title="含稅總額（可點擊修正）"
-        style="width:96px;background:transparent;border:1px dashed rgba(255,255,255,.15);border-radius:3px;color:#fbbf24;font-family:monospace;font-size:14px;font-weight:700;padding:1px 4px;text-align:center;cursor:text;justify-self:center;align-self:center"
+        style="width:96px;background:transparent;border:1px dashed rgba(255,255,255,.15);border-radius:3px;color:#fff;font-family:monospace;font-size:14px;font-weight:700;padding:1px 4px;text-align:center;cursor:text;justify-self:center;align-self:center"
         onclick="event.stopPropagation()"
         onchange="rmCorrectAmount('${corrKey}',this.value,${fi},${voucherIdx})">
       <span class="rm-match-badge ${badgeCls}">${badgeLabel}</span>
@@ -7938,10 +7938,10 @@ function renderHistMatchBar(voucherName, histId) {
         ${displayItem}
         ${sub ? `<div class="hist-match-sub">${sub}</div>` : ''}
       </div>
-      <span style="text-align:center;color:#fbbf24;font-family:monospace;font-size:13px;font-weight:700" title="憑證統編">${_vTaxIdH || '<span style=\"opacity:.3\">—</span>'}</span>
-      <span style="text-align:center;color:rgba(255,255,255,.75);font-family:monospace;font-size:13px">${_fmtH(vP)}</span>
-      <span style="text-align:center;color:rgba(255,255,255,.75);font-family:monospace;font-size:13px">${_fmtH(vT)}</span>
-      <span class="hist-match-amt">${amt ? amt.toLocaleString() : ''}</span>
+      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px;font-weight:700" title="憑證統編">${_vTaxIdH || '<span style=\"opacity:.3\">—</span>'}</span>
+      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${_fmtH(vP)}</span>
+      <span style="text-align:center;color:#fff;font-family:monospace;font-size:13px">${_fmtH(vT)}</span>
+      <span class="hist-match-amt" style="color:#fff">${amt ? amt.toLocaleString() : ''}</span>
       <span class="hist-match-badge ${badgeCls}" style="cursor:pointer" title="點擊修改核對結果" onclick="event.stopPropagation();openHistStatusPicker(${histId},${rowIdx},'${safeVName}')">${badgeLabel}</span>
       <span class="hist-match-reason">${reason}</span>
     </div>`;
@@ -8301,6 +8301,65 @@ function histImgNav(dir) {
   showHistVoucherImg(null, newName, _histImgState.histId, /*keepState*/ true);
 }
 
+// ★★★ 對舊憑證自動重新跑 AI 分析（補齊統編 / 完整品項 / 未稅 / 營業稅）
+const _autoRefreshedVouchers = new Set();  // 同一個 session 內已重新分析過的避免重複呼叫 API
+async function _autoRefreshHistVoucherData(voucherName, histId, imageBlob) {
+  const cacheKey = histId + '__' + voucherName;
+  if (_autoRefreshedVouchers.has(cacheKey)) return;
+  _autoRefreshedVouchers.add(cacheKey);
+
+  const history = loadHistory();
+  const entry = history.find(e => e.id === histId);
+  if (!entry || !Array.isArray(entry.rows)) return;
+  const linkedRows = entry.rows.filter(r => r.voucherName === voucherName);
+  if (linkedRows.length === 0) return;
+
+  // 檢查是否需要重新分析（任何一筆缺統編或完整品項）
+  const needRefresh = linkedRows.some(r =>
+    !r.voucherTaxId
+    || !r.voucherItems || !Array.isArray(r.voucherItems) || r.voucherItems.length === 0
+    || r.voucherPretax == null || r.voucherTax == null
+  );
+  if (!needRefresh) return;
+
+  // 顯示載入指示器
+  try {
+    const titleEl = document.querySelector('.hist-match-bar-title');
+    if (titleEl && !document.getElementById('histRefreshSpinner')) {
+      titleEl.insertAdjacentHTML('beforeend',
+        ' <span id="histRefreshSpinner" style="margin-left:10px;color:#fbbf24;font-size:11px;font-weight:600">⏳ AI 補抓憑證資料中...</span>');
+    }
+  } catch(_){}
+
+  try {
+    if (!imageBlob) return;
+    const inv = await callGeminiVision(null, imageBlob, voucherName);
+    if (!inv) return;
+    let changed = false;
+    linkedRows.forEach(r => {
+      if (!r.voucherTaxId && inv.buyer_tax_id) { r.voucherTaxId = String(inv.buyer_tax_id); changed = true; }
+      if ((!r.voucherItems || r.voucherItems.length <= 1) && Array.isArray(inv.items)) {
+        const list = inv.items.map(it => it && it.name).filter(Boolean);
+        if (list.length > 0) { r.voucherItems = list; changed = true; }
+      }
+      if (!r.voucherMainItem && inv.main_item_name) { r.voucherMainItem = inv.main_item_name; changed = true; }
+      if (r.voucherPretax == null && inv.pretax_amount != null) { r.voucherPretax = Number(inv.pretax_amount); changed = true; }
+      if (r.voucherTax == null && inv.tax_amount != null) { r.voucherTax = Number(inv.tax_amount); changed = true; }
+    });
+    if (changed) {
+      saveHistory(history);
+      // 重新渲染 match bar
+      if (typeof renderHistMatchBar === 'function') renderHistMatchBar(voucherName, histId);
+      // 也順便重新渲染歷史列表（讓統編欄位的「—」更新成新值）
+      if (typeof renderHistoryList === 'function') { try { renderHistoryList(); } catch(_){} }
+    }
+  } catch (e) {
+    console.warn('[Auto-refresh] AI re-scan failed for', voucherName, e);
+  } finally {
+    try { document.getElementById('histRefreshSpinner')?.remove(); } catch(_){}
+  }
+}
+
 async function showHistVoucherImg(event, voucherName, histId, keepState) {
   if (event) event.stopPropagation();
   const overlay = document.getElementById('histImgOverlay');
@@ -8349,12 +8408,30 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
 
   // 1. 先找當前 session 記憶體中的 voucher blob URL（最快）
   const v = vouchers.find(x => x.name === voucherName);
-  if (v && v.url) { _showImg(v.url, voucherName); renderHistMatchBar(voucherName, histId); return; }
+  if (v && v.url) {
+    _showImg(v.url, voucherName);
+    renderHistMatchBar(voucherName, histId);
+    // ★ 背景重抓 AI 資料（如果舊紀錄缺統編/完整品項）
+    try {
+      const blob = await (await fetch(v.url)).blob();
+      _autoRefreshHistVoucherData(voucherName, histId, blob).catch(()=>{});
+    } catch(_){}
+    return;
+  }
 
   // 2. 從 IndexedDB 讀取存好的圖片（本機，最快）
   try {
     const dataUrl = await dbGetImage(histId, voucherName);
-    if (dataUrl) { _showImg(dataUrl, voucherName); renderHistMatchBar(voucherName, histId); return; }
+    if (dataUrl) {
+      _showImg(dataUrl, voucherName);
+      renderHistMatchBar(voucherName, histId);
+      // ★ 背景重抓 AI 資料
+      try {
+        const blob = await (await fetch(dataUrl)).blob();
+        _autoRefreshHistVoucherData(voucherName, histId, blob).catch(()=>{});
+      } catch(_){}
+      return;
+    }
   } catch(e) { console.warn('[HistImg] IndexedDB 讀取失敗:', e); }
 
   // 3. 從雲端 Supabase Storage 讀取（跨瀏覽器/跨電腦）
@@ -8369,6 +8446,8 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
         const blob = await (await fetch(cloudUrl)).blob();
         const dataUrl = await blobToDataUrl(blob);
         if (dataUrl) await dbPutImage(histId, voucherName, dataUrl);
+        // ★ 背景重抓 AI 資料
+        _autoRefreshHistVoucherData(voucherName, histId, blob).catch(()=>{});
       } catch(_){}
       return;
     }
