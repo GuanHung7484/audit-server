@@ -7647,13 +7647,25 @@ function renderHistoryList() {
       };
       // 統一的金額 cell 樣式（避免視覺不對齊）
       const amtStyleBase = "text-align:center;font-family:monospace;font-size:14px;vertical-align:middle;";
-      // ★ 品名：優先顯示憑證上 AI 抓到的品名；舊紀錄若沒存則嘗試從 AI 核對說明的「品項：xxx」抓
-      let productName = r.voucherMainItem || '';
-      if (!productName && r.aiReason) {
-        const m = String(r.aiReason).match(/品項[:：]\s*([^；;,\n]+)/);
-        if (m) productName = m[1].trim().split(/[、，,]/)[0]; // 取第一個品項
+      // ★ 品名：若有多品項全部列出（用 <br> 分行）；舊紀錄優先從 voucherItems 取
+      let productName;
+      if (r.voucherItems && Array.isArray(r.voucherItems) && r.voucherItems.length > 1) {
+        // 多品項：每個換行
+        productName = r.voucherItems.map(it => `<div>${it}</div>`).join('');
+      } else {
+        let single = r.voucherMainItem || '';
+        if (!single && r.aiReason) {
+          const m = String(r.aiReason).match(/品項[:：]\s*([^；;,\n]+)/);
+          if (m) {
+            const parts = m[1].trim().split(/[、，,]/).map(s => s.trim()).filter(Boolean);
+            single = parts.length > 1
+              ? parts.map(p => `<div>${p}</div>`).join('')
+              : parts[0];
+          }
+        }
+        if (!single) single = r.mainItem || '';
+        productName = single.includes('<div>') ? single : `<div>${single}</div>`;
       }
-      if (!productName) productName = r.mainItem || '';  // 最終 fallback
       // ★ 統編顯示
       const taxIdCell = r.voucherTaxId
         ? `<span style="font-family:monospace;color:#2d3748;font-size:13px">${r.voucherTaxId}</span>`
@@ -7662,7 +7674,7 @@ function renderHistoryList() {
         <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700" title="點擊修改 # 行號" onclick="editHistRowField(${id},${originalIdx},'excelRow',this)">${rowNum}</td>
         <td>${r.sheet}</td>
         <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
-        <td style="font-weight:700;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${productName}（Excel 主項目：${r.mainItem||''}）">${productName}</td>
+        <td style="font-weight:700;max-width:200px;line-height:1.45;font-size:13px" title="Excel 主項目：${r.mainItem||''}">${productName}</td>
         <td style="text-align:center" title="憑證統一編號">${taxIdCell}</td>
         <td style="${amtStyleBase}color:#4a5568" title="未稅金額">${fmtAmt(vPretax)}</td>
         <td style="${amtStyleBase}color:#4a5568" title="營業稅">${fmtAmt(vTax)}</td>
@@ -7747,6 +7759,7 @@ function renderHistoryList() {
           <span class="hbadge hb-none" title="${vUnmatched} 張憑證未匹配（顯示於下方酒紅色列）"><span class="hb-label">未匹配</span><span class="hb-num">${vUnmatched}</span></span>
         </span>
         <button onclick="event.stopPropagation();openReassignClient(${id})" title="重新指派客戶" style="background:#fef0d8;border:1px solid #d4a258;color:#5b2c0c;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">← 重新指派</button>
+        <button onclick="event.stopPropagation();reanalyzeAllVouchers(${id},this)" title="重新對所有舊憑證跑 AI 分析（補齊統編、完整品項、未稅、營業稅）" style="background:#e0f2fe;border:1px solid #7dd3fc;color:#0369a1;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">🔄 重新分析全部憑證</button>
         <button onclick="event.stopPropagation();exportHistoryExcel(${id})" title="匯出此筆紀錄為 Excel" style="background:#ebf8ff;border:1px solid #bee3f8;color:#2b6cb0;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">📥 匯出</button>
         <button class="hist-rec-del" onclick="deleteHistoryEntry(${id},event)" title="刪除此記錄">🗑</button>
       </div>
@@ -8299,6 +8312,50 @@ function histImgNav(dir) {
   const newName = _histImgState.list[newIdx];
   _histImgState.idx = newIdx;
   showHistVoucherImg(null, newName, _histImgState.histId, /*keepState*/ true);
+}
+
+// ★★★ 批次：對指定歷史紀錄的「所有憑證」重新跑 AI 分析
+async function reanalyzeAllVouchers(histId, btn) {
+  if (!confirm('將對此筆紀錄的所有憑證重新跑 AI 分析（補齊統編、完整品項、未稅金額、營業稅）。\n\n注意：會消耗 AI API 配額，每張憑證約 3~5 秒。是否繼續？')) return;
+  const history = loadHistory();
+  const entry = history.find(e => e.id === histId);
+  if (!entry || !Array.isArray(entry.voucherList) || entry.voucherList.length === 0) {
+    showToast('此紀錄沒有憑證可分析'); return;
+  }
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
+  const total = entry.voucherList.length;
+  let done = 0, success = 0, fail = 0;
+  for (const vn of entry.voucherList) {
+    done++;
+    if (btn) btn.textContent = `🔄 分析中 ${done}/${total}...`;
+    try {
+      // 取得憑證 blob
+      let blob = null;
+      try {
+        const dataUrl = await dbGetImage(histId, vn);
+        if (dataUrl) blob = await (await fetch(dataUrl)).blob();
+      } catch(_){}
+      if (!blob) {
+        try {
+          const cloudUrl = await cloudGetVoucherUrl(histId, vn);
+          if (cloudUrl) blob = await (await fetch(cloudUrl)).blob();
+        } catch(_){}
+      }
+      if (!blob) { fail++; continue; }
+      // 強制重新分析（清掉 cache）
+      _autoRefreshedVouchers.delete(histId + '__' + vn);
+      // 為了強制執行，暫時臨時清掉資料讓 _autoRefresh 判斷需要重抓
+      const tempRows = entry.rows.filter(r => r.voucherName === vn);
+      tempRows.forEach(r => { r.voucherTaxId = ''; r.voucherItems = []; });
+      await _autoRefreshHistVoucherData(vn, histId, blob);
+      success++;
+    } catch(e) { console.warn('[Reanalyze]', vn, e); fail++; }
+  }
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = origText || '🔄 重新分析全部憑證'; }
+  showToast(`✅ 重新分析完成：成功 ${success} 張，失敗 ${fail} 張`);
+  // 全部完成後重新渲染
+  if (typeof renderHistoryList === 'function') try { renderHistoryList(); } catch(_){}
 }
 
 // ★★★ 對舊憑證自動重新跑 AI 分析（補齊統編 / 完整品項 / 未稅 / 營業稅）
