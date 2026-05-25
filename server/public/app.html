@@ -1611,7 +1611,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
     <!-- 標題 + 返回按鈕 -->
     <div class="hp-header">
       <button class="hp-back-btn gold" onclick="switchToPage('overview')" title="返回核對作業（總覽）頁">← 返回核對作業</button>
-      <button class="hp-back-btn gold" onclick="switchToPage('work')" title="返回匹配作業頁">← 返回匹配作業</button>
+      <button class="hp-back-btn gold" onclick="_backToWorkFromHist()" title="返回匹配作業頁（切換到該筆紀錄的客戶）">← 返回匹配作業</button>
       <div class="hp-title-icon">📋</div>
       <h2 class="hp-title">歷史審核記錄</h2>
       <span id="histCloudBadge" class="hist-cloud-badge" style="display:none;margin-left:8px"></span>
@@ -1850,6 +1850,23 @@ function save() { S.checks = checks; S.voucherMeta = voucherMeta; S.rowVoucherLi
 // ════════════════════════════════════════════════════════════════
 let __currentPage = 'overview'; // 預設首頁 = 總覽
 let __historyTargetId = null;    // 單筆紀錄檢視模式：若有值，歷史頁只顯示這一筆
+
+// 點「返回匹配作業」時：依照當前檢視的單筆紀錄客戶切換 session 再跳轉
+function _backToWorkFromHist() {
+  try {
+    if (__historyTargetId != null) {
+      const entry = (loadHistory() || []).find(e => e.id === __historyTargetId);
+      const clientName = entry && (entry.clientName || '');
+      if (clientName) {
+        const target = (Array.isArray(__sessions) ? __sessions : []).find(s => !s.parentSessionId && s.name === clientName);
+        if (target && target.id !== __activeSessionId && typeof switchSession === 'function') {
+          switchSession(target.id);
+        }
+      }
+    }
+  } catch(e) { console.warn('[BackToWork] 切換客戶失敗:', e); }
+  if (typeof switchToPage === 'function') switchToPage('work');
+}
 function switchToPage(name) {
   __currentPage = name;
   // ★ 切換頁面時，根據新頁面決定 AI 智慧審核中浮動視窗是否顯示
@@ -7714,19 +7731,18 @@ function renderHistoryList() {
       const taxIdCell = r.voucherTaxId
         ? `<span style="font-family:monospace;color:#2d3748;font-size:13px">${r.voucherTaxId}</span>`
         : `<span style="color:#cbd5e0">—</span>`;
-      const _safeVN = (r.voucherName || '').replace(/'/g,"\\'");
-      return `<tr class="${cls}" style="cursor:pointer" onclick="showVoucherInfoPopup(event,'${_safeVN}',${id})" title="點擊查看此筆憑證明細">
-        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700" title="點擊修改 # 行號" onclick="event.stopPropagation();editHistRowField(${id},${originalIdx},'excelRow',this)">${rowNum}</td>
+      return `<tr class="${cls}">
+        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700" title="點擊修改 # 行號" onclick="editHistRowField(${id},${originalIdx},'excelRow',this)">${rowNum}</td>
         <td>${r.sheet}</td>
-        <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="event.stopPropagation();editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
+        <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
         <td style="font-weight:700;max-width:200px;line-height:1.45;font-size:13px" title="Excel 主項目：${r.mainItem||''}">${productName}</td>
         <td style="text-align:center" title="憑證統一編號">${taxIdCell}</td>
         <td style="${amtStyleBase}color:#4a5568" title="未稅金額">${fmtAmt(vPretax)}</td>
         <td style="${amtStyleBase}color:#4a5568" title="營業稅">${fmtAmt(vTax)}</td>
         <td style="${amtStyleBase}font-weight:700;color:#1a202c" title="含稅總額">${totalAmt.toLocaleString()}</td>
-        <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="event.stopPropagation();openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
+        <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
         <td class="hd-reason ${reasonCls}" style="padding-right:38px" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
-        <td style="white-space:nowrap;" onclick="event.stopPropagation()">${voucherCell}</td>
+        <td style="white-space:nowrap;">${voucherCell}</td>
       </tr>`;
     }).join('');
 
