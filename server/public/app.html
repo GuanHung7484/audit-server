@@ -4673,9 +4673,11 @@ function renderReceiptMatchBar(voucherIdx) {
   const worstStatus = allStatuses.reduce((w, s) => (prio2[s] || 0) > (prio2[w] || 0) ? s : w, '');
   const badgeCls = worstStatus === '正確' ? 'ok' : worstStatus === '不正確' ? 'err' : worstStatus === '待確認' ? 'wait' : 'none';
   const badgeLabel = worstStatus === '正確' ? '✓ 正確' : worstStatus === '不正確' ? '✗ 不正確' : worstStatus === '待確認' ? '? 待確認' : '—';
-  // 多 row 的 AI 核對說明合併（去重，只留一筆）
-  const _rawReasonsRm = [...new Set(matched.map(m => m.chk.aiReason || '').filter(Boolean))];
-  const reasonsHtml = _rawReasonsRm.slice(0, 1).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${_formatAIReason(r)}</div>`).join('');
+  // 只顯示第一筆 AI 核對說明（不重複）
+  const _firstReasonRm = matched.length > 0 ? (matched[0].chk.aiReason || '').trim() : '';
+  const reasonsHtml = _firstReasonRm
+    ? `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${_formatAIReason(_firstReasonRm)}</div>`
+    : '';
 
   // 品名/數量/單價/未稅/營業稅/含稅 每個品項一行
   // ★ 多品項之間以分隔白線區隔（最後一個不加）
@@ -8023,8 +8025,11 @@ function renderHistMatchBar(voucherName, histId, targetEl) {
   const worstSt = matchedRowsWithIdx.reduce((w, {row: r}) => (prioH[r.status || ''] || 0) > (prioH[w] || 0) ? (r.status || '') : w, '');
   const badgeClsH = worstSt === '正確' ? 'ok' : worstSt === '不正確' ? 'err' : worstSt === '待確認' ? 'wait' : 'none';
   const badgeLabelH = worstSt === '正確' ? '✓ 正確' : worstSt === '不正確' ? '✗ 不正確' : worstSt === '待確認' ? '? 待確認' : '— 未匹配';
-  const _rawReasonsH = [...new Set(matchedRowsWithIdx.map(({row: r}) => r.aiReason || '').filter(Boolean))];
-  const reasonsH = _rawReasonsH.slice(0, 1).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${_formatAIReason(r)}</div>`).join('');
+  // 只顯示第一筆 AI 核對說明（不重複）
+  const _firstReasonH = matchedRowsWithIdx.length > 0 ? (matchedRowsWithIdx[0].row.aiReason || '').trim() : '';
+  const reasonsH = _firstReasonH
+    ? `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${_formatAIReason(_firstReasonH)}</div>`
+    : '';
 
   // ★ 多品項之間以分隔白線區隔（最後一個不加）
   const _sepStyleH = (i, len) => i < len - 1
