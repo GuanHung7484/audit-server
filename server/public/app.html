@@ -575,6 +575,11 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .receipt-modal-nav.prev { left:14px; border-radius:0 8px 8px 0; }
 .receipt-modal-nav.next { right:14px; border-radius:8px 0 0 8px; }
 .receipt-modal-counter { position:fixed; top:14px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.85); font-size:13px; background:rgba(0,0,0,.4); padding:6px 14px; border-radius:99px; z-index:1201; }
+
+/* ★ # 下拉式核對明細 — 品項列 hover 變淺咖啡色（與 topbar 配色一致） */
+.hist-row-detail .hist-detail-item-row:hover {
+  background: rgba(212,162,88,.18) !important;
+}
 .rm-status-btn { border:1px solid rgba(255,255,255,.35); border-radius:8px; padding:5px 10px; font-size:11px; font-weight:800; cursor:pointer; background:rgba(255,255,255,.1); color:#fff; margin-left:4px; transition:all .15s; }
 .rm-status-btn:hover { transform:translateY(-1px); }
 .rm-status-btn.rm-st-ok { background:rgba(22,163,74,.4); border-color:rgba(74,222,128,.6); }
@@ -669,13 +674,24 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-eye-btn:hover { opacity:1; transform:scale(1.2); }
 .result-eye-btn { background:none; border:none; cursor:pointer; font-size:15px; padding:0 3px; color:#4a9fd4; vertical-align:middle; opacity:.7; transition:opacity .15s, transform .15s; line-height:1; }
 .result-eye-btn:hover { opacity:1; transform:scale(1.2); }
-/* 憑證預覽彈窗 */
-.hist-img-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:5000; align-items:center; justify-content:center; }
-.hist-img-overlay.open { display:flex; }
-.hist-img-box { background:#1a202c; border-radius:12px; padding:16px; max-width:92vw; max-height:96vh; display:flex; flex-direction:column; gap:10px; box-shadow:0 8px 48px rgba(0,0,0,.6); }
-.hist-img-title { color:#fff; font-size:14px; font-weight:700; text-align:center; }
-/* ★ flex:1 讓圖片預覽區用滿剩餘空間（不再固定 max-height:58vh，避免下方空白） */
-#histImgContent { overflow:auto; flex:1 1 auto; min-height:300px; display:flex; align-items:flex-start; justify-content:center; }
+/* 憑證預覽彈窗 — 改為「浮動視窗」可拖曳 */
+/* overlay 不再阻擋背景互動：移除半透明黑底、改 pointer-events:none */
+.hist-img-overlay { display:none; position:fixed; inset:0; background:transparent; z-index:5000; pointer-events:none; }
+.hist-img-overlay.open { display:block; }
+/* 浮動視窗：較小尺寸、可拖曳、有陰影；位置由 JS 動態設定 */
+.hist-img-box {
+  background:#1a202c; border-radius:12px; padding:14px;
+  width:760px; max-width:90vw; max-height:80vh;
+  display:flex; flex-direction:column; gap:8px;
+  box-shadow:0 12px 48px rgba(0,0,0,.55), 0 0 0 1px rgba(212,162,88,.4);
+  position:fixed; top:80px; left:calc(50% - 380px);
+  pointer-events:auto;  /* 視窗本身可互動 */
+}
+/* 標題列當作拖曳把手 */
+.hist-img-title { color:#fff; font-size:14px; font-weight:700; text-align:center; cursor:move; user-select:none; padding:4px 0; background:rgba(212,162,88,.12); border-radius:6px; }
+.hist-img-title::before { content:"⠿ "; color:rgba(244,216,150,.6); font-size:13px; }
+/* ★ flex:1 讓圖片預覽區用滿剩餘空間 */
+#histImgContent { overflow:auto; flex:1 1 auto; min-height:200px; display:flex; align-items:flex-start; justify-content:center; }
 /* 歷史圖片底部明細欄 */
 .hist-match-bar { background:rgba(0,0,0,.45); border-radius:8px; padding:8px 14px 8px; box-sizing:border-box; width:100%; }
 .hist-match-bar-title { color:rgba(255,255,255,.5); font-size:13px; font-weight:700; letter-spacing:.5px; margin-bottom:6px; }
@@ -721,7 +737,8 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-cloud-badge.syncing { background:#1e40af; color:#fff; border:1px solid #1e3a8a; }
 .hist-cloud-badge.ok      { background:#15803d; color:#fff; border:1px solid #14532d; font-weight:800; }
 .hist-cloud-badge.err     { background:#991b1b; color:#fff; border:1px solid #7f1d1d; }
-.hist-img-box img { max-width:82vw; display:block; border-radius:6px; transition:transform .2s; transform-origin:top center; }
+/* 圖片 max-width 改為 100% → 配合縮小後的浮動視窗，避免圖片溢出 */
+.hist-img-box img { max-width:100%; display:block; border-radius:6px; transition:transform .2s; transform-origin:top center; }
 .hist-img-close { align-self:flex-end; background:rgba(255,255,255,.15); border:none; color:#fff; border-radius:6px; padding:6px 16px; cursor:pointer; font-size:14px; font-family:inherit; }
 .hist-img-close:hover { background:rgba(255,255,255,.28); }
 .hist-img-nodata { color:#a0aec0; font-size:13px; text-align:center; padding:40px 20px; }
@@ -729,12 +746,12 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-zoom-btn { background:rgba(255,255,255,.15); border:none; color:#fff; border-radius:6px; padding:5px 16px; cursor:pointer; font-size:15px; font-family:inherit; }
 .hist-zoom-btn:hover { background:rgba(255,255,255,.28); }
 .hist-zoom-pct { color:#a0aec0; font-size:13px; min-width:48px; text-align:center; }
-.hist-img-nav { position:fixed; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.18); border:none; color:#fff; width:54px; height:80px; font-size:34px; cursor:pointer; z-index:5001; display:flex; align-items:center; justify-content:center; transition:background .15s; user-select:none; }
+.hist-img-nav { position:fixed; top:50%; transform:translateY(-50%); background:rgba(74,29,5,.85); border:1px solid rgba(212,162,88,.5); color:#f4d896; width:48px; height:64px; font-size:30px; cursor:pointer; z-index:5001; display:flex; align-items:center; justify-content:center; transition:background .15s; user-select:none; pointer-events:auto; }
 .hist-img-nav:hover:not(:disabled) { background:rgba(255,255,255,.4); }
 .hist-img-nav:disabled { opacity:.25; cursor:not-allowed; }
 .hist-img-nav.prev { left:14px; border-radius:0 8px 8px 0; }
 .hist-img-nav.next { right:14px; border-radius:8px 0 0 8px; }
-.hist-img-counter { position:fixed; top:14px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.85); font-size:13px; background:rgba(0,0,0,.4); padding:6px 14px; border-radius:99px; z-index:5001; }
+.hist-img-counter { position:fixed; top:14px; left:50%; transform:translateX(-50%); color:#f4d896; font-size:13px; background:rgba(74,29,5,.85); border:1px solid rgba(212,162,88,.5); padding:6px 14px; border-radius:99px; z-index:5001; pointer-events:auto; }
 
 /* ── Print Container (hidden on screen, shown on print) ── */
 #printContainer { display: none; }
@@ -7935,15 +7952,15 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
 
   const _fmt = n => (n == null || n === '') ? '<span style="opacity:.4">—</span>' : Number(n).toLocaleString();
 
-  // 品項列 HTML
+  // 品項列 HTML（hover 變淺咖啡色 = rgba(212,162,88,.18)）
   const itemsRowsHtml = items.length > 0
     ? items.map((it, i) => {
         const pretax = pretaxList[i];
         const tax = pretax != null ? Math.round(pretax * 0.05) : null;
         const total = pretax != null ? pretax + tax : null;
-        const sepStyle = i < items.length - 1 ? 'border-bottom:1px solid rgba(255,255,255,.18)' : '';
-        return `<tr style="${sepStyle}">
-          <td style="padding:8px 10px;color:rgba(255,255,255,.85);text-align:center;font-size:13px">${row.date || ''}</td>
+        const sepStyle = i < items.length - 1 ? 'border-bottom:1px solid rgba(244,216,150,.22);' : '';
+        return `<tr class="hist-detail-item-row" style="${sepStyle}transition:background .12s">
+          <td style="padding:8px 10px;color:#f4d896;text-align:center;font-size:13px">${row.date || ''}</td>
           <td style="padding:8px 10px;color:#fff;font-weight:600;font-size:13px">${it.name || ''}</td>
           <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:center;font-size:13px">${_fmt(it.qty)}</td>
           <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:center;font-size:13px">${_fmt(it.unit_price)}</td>
@@ -7952,23 +7969,24 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
           <td style="padding:8px 10px;color:#fbbf24;font-family:monospace;text-align:right;font-weight:700;font-size:14px">${_fmt(total)}</td>
         </tr>`;
       }).join('')
-    : `<tr><td colspan="7" style="padding:14px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">— 此憑證無品項資料 —</td></tr>`;
+    : `<tr><td colspan="7" style="padding:14px;text-align:center;color:rgba(244,216,150,.55);font-size:13px">— 此憑證無品項資料 —</td></tr>`;
 
   // 取 td 數量（colspan）— 表頭有 11 欄
   const colspanCount = 11;
   const detailRow = document.createElement('tr');
   detailRow.className = 'hist-row-detail';
   detailRow.setAttribute('data-detail-for', String(rowIdx));
+  // ★ 底色改為 topbar 深咖啡色 #4a1d05；列 hover 淺咖啡色 rgba(212,162,88,.18)
   detailRow.innerHTML = `
-    <td colspan="${colspanCount}" style="background:#1a202c;padding:16px 22px;border:0;border-left:4px solid #d4a258">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;color:rgba(255,255,255,.85);font-size:13px;font-weight:700;letter-spacing:.5px">
+    <td colspan="${colspanCount}" style="background:#4a1d05;padding:16px 22px;border:0;border-left:4px solid #d4a258">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;color:#f4d896;font-size:13px;font-weight:700;letter-spacing:.5px">
         <span>📋 對應支出明細 AI 核對結果</span>
-        <span style="color:#93c5fd;font-weight:600">${voucherName ? '— ' + voucherName : ''}</span>
-        <span style="margin-left:auto;color:rgba(255,255,255,.45);font-size:11px;font-weight:500">再點 # 可收合</span>
+        <span style="color:#fbbf24;font-weight:600">${voucherName ? '— ' + voucherName : ''}</span>
+        <span style="margin-left:auto;color:rgba(244,216,150,.6);font-size:11px;font-weight:500">再點 # 可收合</span>
       </div>
       <table style="width:100%;border-collapse:collapse">
         <thead>
-          <tr style="border-bottom:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.65);font-weight:700;font-size:12px">
+          <tr style="border-bottom:1px solid rgba(244,216,150,.35);color:#f4d896;font-weight:700;font-size:12px">
             <th style="padding:8px 10px;text-align:center;width:90px">日期</th>
             <th style="padding:8px 10px;text-align:left">品名</th>
             <th style="padding:8px 10px;text-align:center;width:70px">數量</th>
@@ -7980,7 +7998,7 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
         </thead>
         <tbody>${itemsRowsHtml}</tbody>
       </table>
-      <div style="text-align:right;padding:12px 0 0;font-size:14px;font-weight:600;color:rgba(255,255,255,.92);line-height:1.9;border-top:1px solid rgba(255,255,255,.12);margin-top:6px">
+      <div style="text-align:right;padding:12px 0 0;font-size:14px;font-weight:600;color:#f4d896;line-height:1.9;border-top:1px solid rgba(244,216,150,.25);margin-top:6px">
         <span style="margin-right:14px">收據總額：<b style="color:#86efac;font-family:monospace;font-size:15px" title="多筆品項含稅總額加總">${receiptTotal.toLocaleString()}</b></span>
         <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace;font-size:15px" title="AI 從憑證辨識的總金額">${voucherTotal.toLocaleString()}</b></span>
         <span style="margin-right:14px">Excel 合計：<b style="color:#93c5fd;font-family:monospace;font-size:15px">${excelSum.toLocaleString()}</b></span>
@@ -8749,6 +8767,8 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
   // ★ 查看 = 只顯示憑證圖片；對應支出明細的核對結果改由「點 # 欄位下拉」呈現
   const matchBar = document.getElementById('histMatchBar');
   if (matchBar) matchBar.style.display = 'none';
+  // ★ 啟用浮動視窗拖曳（只綁定一次）
+  if (typeof _enableHistImgBoxDrag === 'function') _enableHistImgBoxDrag();
 
   // ── 設定導航狀態（依「明細表格 # 欄位顯示順序」排列憑證）──
   //   原本用 entry.voucherList（上傳順序）→ 改用表格中憑證實際出現的順序
@@ -8919,6 +8939,54 @@ function _updateHistZoomInput() {
 function _applyHistTransform() {
   const img = document.getElementById('histZoomImg');
   if (img) img.style.transform = `translate(${_histPanX}px,${_histPanY}px) scale(${_histZoomLevel})`;
+}
+
+// ════════════════════════════════════════════════════════════
+// ── 浮動視窗拖曳邏輯：抓住標題列就能拖動 ──
+// ════════════════════════════════════════════════════════════
+let _histImgDragBound = false;
+function _enableHistImgBoxDrag() {
+  if (_histImgDragBound) return;
+  const box = document.querySelector('#histImgOverlay .hist-img-box');
+  const title = document.getElementById('histImgTitle');
+  if (!box || !title) return;
+  _histImgDragBound = true;
+  let dragging = false;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  title.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    dragging = true;
+    const rect = box.getBoundingClientRect();
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop  = rect.top;
+    // 把 box 切換成「絕對座標」拖曳模式
+    box.style.left = startLeft + 'px';
+    box.style.top  = startTop  + 'px';
+    box.style.right = 'auto';
+    box.style.bottom = 'auto';
+    title.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    let nx = startLeft + dx;
+    let ny = startTop + dy;
+    // 邊界保護：不讓視窗完全拖出畫面（至少留 60px 在可視範圍）
+    const minVisible = 60;
+    nx = Math.max(minVisible - box.offsetWidth, Math.min(window.innerWidth - minVisible, nx));
+    ny = Math.max(0, Math.min(window.innerHeight - minVisible, ny));
+    box.style.left = nx + 'px';
+    box.style.top  = ny + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    title.style.cursor = 'move';
+  });
 }
 
 // ── 行號修正 ──
