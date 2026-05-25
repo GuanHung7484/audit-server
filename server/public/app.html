@@ -576,9 +576,17 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .receipt-modal-nav.next { right:14px; border-radius:8px 0 0 8px; }
 .receipt-modal-counter { position:fixed; top:14px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.85); font-size:13px; background:rgba(0,0,0,.4); padding:6px 14px; border-radius:99px; z-index:1201; }
 
-/* ★ # 下拉式核對明細 — 品項列 hover 變淺咖啡色（與 topbar 配色一致） */
+/* ★ # 下拉式核對明細 — 品項列 hover 變金色 */
 .hist-row-detail .hist-detail-item-row:hover {
-  background: rgba(212,162,88,.18) !important;
+  background: rgba(212,162,88,.55) !important;
+}
+/* ★ 歷史紀錄主表格 — 整列點擊展開（除「查看」按鈕外）*/
+.hist-dtable tbody tr.hr-clickable {
+  cursor: pointer;
+  transition: background .12s;
+}
+.hist-dtable tbody tr.hr-clickable:hover {
+  background: rgba(212,162,88,.18);
 }
 .rm-status-btn { border:1px solid rgba(255,255,255,.35); border-radius:8px; padding:5px 10px; font-size:11px; font-weight:800; cursor:pointer; background:rgba(255,255,255,.1); color:#fff; margin-left:4px; transition:all .15s; }
 .rm-status-btn:hover { transform:translateY(-1px); }
@@ -678,13 +686,13 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 /* overlay 不再阻擋背景互動：移除半透明黑底、改 pointer-events:none */
 .hist-img-overlay { display:none; position:fixed; inset:0; background:transparent; z-index:5000; pointer-events:none; }
 .hist-img-overlay.open { display:block; }
-/* 浮動視窗：較小尺寸、可拖曳、有陰影；位置由 JS 動態設定 */
+/* 浮動視窗：再縮小一些、可拖曳、有陰影；位置由 JS 動態設定 */
 .hist-img-box {
-  background:#1a202c; border-radius:12px; padding:14px;
-  width:760px; max-width:90vw; max-height:80vh;
-  display:flex; flex-direction:column; gap:8px;
+  background:#1a202c; border-radius:12px; padding:12px;
+  width:680px; max-width:90vw; max-height:78vh;
+  display:flex; flex-direction:column; gap:6px;
   box-shadow:0 12px 48px rgba(0,0,0,.55), 0 0 0 1px rgba(212,162,88,.4);
-  position:fixed; top:80px; left:calc(50% - 380px);
+  position:fixed; top:80px; left:calc(50% - 340px);
   pointer-events:auto;  /* 視窗本身可互動 */
 }
 /* 標題列當作拖曳把手 */
@@ -746,12 +754,12 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-zoom-btn { background:rgba(255,255,255,.15); border:none; color:#fff; border-radius:6px; padding:5px 16px; cursor:pointer; font-size:15px; font-family:inherit; }
 .hist-zoom-btn:hover { background:rgba(255,255,255,.28); }
 .hist-zoom-pct { color:#a0aec0; font-size:13px; min-width:48px; text-align:center; }
-.hist-img-nav { position:fixed; top:50%; transform:translateY(-50%); background:rgba(74,29,5,.85); border:1px solid rgba(212,162,88,.5); color:#f4d896; width:48px; height:64px; font-size:30px; cursor:pointer; z-index:5001; display:flex; align-items:center; justify-content:center; transition:background .15s; user-select:none; pointer-events:auto; }
-.hist-img-nav:hover:not(:disabled) { background:rgba(255,255,255,.4); }
-.hist-img-nav:disabled { opacity:.25; cursor:not-allowed; }
-.hist-img-nav.prev { left:14px; border-radius:0 8px 8px 0; }
-.hist-img-nav.next { right:14px; border-radius:8px 0 0 8px; }
-.hist-img-counter { position:fixed; top:14px; left:50%; transform:translateX(-50%); color:#f4d896; font-size:13px; background:rgba(74,29,5,.85); border:1px solid rgba(212,162,88,.5); padding:6px 14px; border-radius:99px; z-index:5001; pointer-events:auto; }
+/* ★ 上一張 / 下一張 按鈕 — 嵌入縮放列 */
+.hist-nav-btn { background:rgba(212,162,88,.25) !important; border:1px solid rgba(212,162,88,.45) !important; color:#f4d896 !important; font-weight:700 !important; }
+.hist-nav-btn:hover:not(:disabled) { background:rgba(212,162,88,.5) !important; }
+.hist-nav-btn:disabled { opacity:.3; cursor:not-allowed; }
+/* ★ 計數器（總張數 / 目前第幾張）— 改為縮放列下方的小徽章 */
+.hist-img-counter { display:inline-block; margin:0 auto; color:#f4d896; font-size:12px; background:rgba(74,29,5,.7); border:1px solid rgba(212,162,88,.45); padding:3px 12px; border-radius:99px; font-weight:700; letter-spacing:.5px; }
 
 /* ── Print Container (hidden on screen, shown on print) ── */
 #printContainer { display: none; }
@@ -1794,13 +1802,12 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 
 <!-- 憑證圖片預覽彈窗 -->
 <div class="hist-img-overlay" id="histImgOverlay" onclick="if(event.target===this)closeHistImg()">
-  <div class="hist-img-counter" id="histImgCounter">1 / 1</div>
-  <button class="hist-img-nav prev" id="histImgPrev" onclick="histImgNav(-1);event.stopPropagation()" title="上一張（←）">‹</button>
-  <button class="hist-img-nav next" id="histImgNext" onclick="histImgNav(1);event.stopPropagation()" title="下一張（→）">›</button>
   <div class="hist-img-box">
     <div class="hist-img-title" id="histImgTitle">憑證圖片</div>
     <div id="histImgContent" onwheel="if(document.getElementById('histZoomImg')){event.preventDefault();histImgZoomChange(event.deltaY<0?1:-1);}"></div>
     <div class="hist-zoom-bar" id="histZoomBar" style="display:none">
+      <!-- ★ 上一張 按鈕 — 放在「縮小」左邊 -->
+      <button class="hist-zoom-btn hist-nav-btn" id="histImgPrev" onclick="histImgNav(-1)" title="上一張（←）">‹ 上一張</button>
       <button class="hist-zoom-btn" onclick="histImgZoomChange(-1)">－ 縮小</button>
       <input type="number" id="histZoomInput" value="100" min="10" max="500" step="10"
         onchange="histImgZoomSet(parseInt(this.value)||100)"
@@ -1810,7 +1817,11 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
       <span class="hist-zoom-pct" id="histZoomLabel" style="color:#fff;font-size:13px;font-weight:700;margin-left:-2px;min-width:auto;padding-right:4px">%</span>
       <button class="hist-zoom-btn" onclick="histImgZoomChange(0)" title="重設為整張剛好顯示">⟳ 重設</button>
       <button class="hist-zoom-btn" onclick="histImgZoomChange(1)">＋ 放大</button>
+      <!-- ★ 下一張 按鈕 — 放在「放大」右邊 -->
+      <button class="hist-zoom-btn hist-nav-btn" id="histImgNext" onclick="histImgNav(1)" title="下一張（→）">下一張 ›</button>
     </div>
+    <!-- ★ 計數器（總張數 / 目前第幾張）— 放在縮放列下方 -->
+    <div style="text-align:center" id="histImgCounterWrap"><span class="hist-img-counter" id="histImgCounter">1 / 1</span></div>
     <!-- ★ 對應支出明細 AI 核對結果 -->
     <div class="hist-match-bar" id="histMatchBar" onclick="event.stopPropagation()">
       <div class="hist-match-bar-title">📋 對應支出明細 AI 核對結果</div>
@@ -1840,6 +1851,10 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ★ 回到頂部 浮動按鈕（捲動超過 200px 時自動顯示） -->
+<button id="backToTopBtn" onclick="scrollHistBodyToTop()" title="回到頂部"
+  style="display:none;position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:#4a1d05;color:#f4d896;border:2px solid #d4a258;font-size:20px;font-weight:900;cursor:pointer;z-index:8000;box-shadow:0 6px 18px rgba(91,44,12,.45);font-family:inherit;transition:transform .15s,background .15s">↑</button>
 
 <script>
 // ── State ──
@@ -1996,20 +2011,20 @@ function renderOverviewPage() {
   const elUploads = document.getElementById('ovStatUploads');
   if (elUploads) elUploads.textContent = list.length.toString();
 
-  // 2) 匹配準確率：所有歷史紀錄中 (ok / (ok+err+wait)) 的平均
-  let totalOk = 0, totalAll = 0;
+  // 2) 平均匹配率：以「憑證張數」為基準（查帳同仁回饋：核對基礎應為憑證總張數）
+  //    acc = ∑ vOk / ∑ voucherCount（包含未匹配憑證）
+  let totalOk = 0, totalVouchers = 0;
   list.forEach(e => {
-    const r = e.results || {};
-    const ok = r.ok || 0, err = r.err || 0, wait = r.wait || 0;
-    totalOk += ok;
-    totalAll += (ok + err + wait);
+    const stats = _calcVoucherStats(e);
+    totalOk += stats.vOk;
+    totalVouchers += (e.voucherCount || (stats.vOk + stats.vErr + stats.vWait + stats.vUnmatched));
   });
-  const acc = totalAll > 0 ? (totalOk / totalAll * 100) : 0;
+  const acc = totalVouchers > 0 ? (totalOk / totalVouchers * 100) : 0;
   const elAcc = document.getElementById('ovStatAccuracy');
-  if (elAcc) elAcc.textContent = totalAll > 0 ? acc.toFixed(1) + '%' : '—';
+  if (elAcc) elAcc.textContent = totalVouchers > 0 ? acc.toFixed(1) + '%' : '—';
   // 同步更新進度條寬度
   const elAccBar = document.getElementById('ovStatAccBar');
-  if (elAccBar) elAccBar.style.width = (totalAll > 0 ? acc.toFixed(1) : 0) + '%';
+  if (elAccBar) elAccBar.style.width = (totalVouchers > 0 ? acc.toFixed(1) : 0) + '%';
 
   // 3) 歷史紀錄列表（套用搜尋關鍵字過濾）
   _renderOvHistFiltered();
@@ -2180,11 +2195,12 @@ function _renderOvHistFiltered() {
 
   const rowsHTML = pagedList.map(entry => {
     const { id, auditDate, auditor, excelFile, voucherCount, results, clientName, auditMonth } = entry;
-    // ★ 以「憑證」為基準計算 — 與單筆紀錄詳情頁一致
+    // ★ 以「憑證張數」為基準計算（查帳同仁回饋：核對基礎應為憑證的總張數）
+    //   精準率 = 匹配成功 / 憑證總張數（包含未匹配，確保比例真實反映品質）
     const stats = _calcVoucherStats(entry);
     const ok = stats.vOk, err = stats.vErr, wait = stats.vWait, unmatched = stats.vUnmatched;
-    const total = ok + err + wait;
-    const acc = total > 0 ? (ok / total * 100) : 0;
+    const totalV = voucherCount || (ok + err + wait + unmatched);
+    const acc = totalV > 0 ? (ok / totalV * 100) : 0;
     const displayClient = clientName || _detectClientName(excelFile) || '—';
     const auditMonthDisp = auditMonth || _inferAuditMonth(entry.rows);
     const monthBadge = auditMonthDisp
@@ -7742,7 +7758,7 @@ function renderHistoryList() {
       const rowNum = rowNumVal !== '' ? `#${rowNumVal}` : '';
       const voucherCell = vName
         ? `<button class="hist-eye-btn" style="background:#ebf8ff;border:1px solid #bee3f8;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#2b6cb0;font-weight:700;"
-            onclick="showHistVoucherImg(event,'${vName.replace(/'/g,"\\'")}',${id})" title="${vName}">👁 查看</button>`
+            onclick="event.stopPropagation();showHistVoucherImg(event,'${vName.replace(/'/g,"\\'")}',${id})" title="${vName}">👁 查看</button>`
         : `<span style="font-size:13px;color:#a0aec0;">📎無</span>`;
       // ★ 三個金額欄位（未稅 / 營業稅 / 含稅總額）— 統一樣式以視覺對齊
       const totalAmt = r.amount || 0;  // Excel 金額視為含稅總額
@@ -7782,16 +7798,16 @@ function renderHistoryList() {
       const taxIdCell = r.voucherTaxId
         ? `<span style="font-family:monospace;color:#2d3748;font-size:13px">${r.voucherTaxId}</span>`
         : `<span style="color:#cbd5e0">—</span>`;
-      return `<tr class="${cls}">
-        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px" title="點擊展開／收合此筆憑證核對明細" onclick="toggleHistRowDetail(${id},${originalIdx},this)">${rowNum}</td>
+      return `<tr class="${cls} hr-clickable" onclick="toggleHistRowDetail(${id},${originalIdx},this)" title="點擊任意位置展開／收合此筆憑證核對明細（查看按鈕除外）">
+        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px">${rowNum}</td>
         <td>${r.sheet}</td>
-        <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
+        <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="event.stopPropagation();editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
         <td style="font-weight:700;max-width:200px;line-height:1.45;font-size:13px" title="Excel 主項目：${r.mainItem||''}">${productName}</td>
         <td style="text-align:center" title="憑證統一編號">${taxIdCell}</td>
         <td style="${amtStyleBase}color:#4a5568" title="未稅金額">${fmtAmt(vPretax)}</td>
         <td style="${amtStyleBase}color:#4a5568" title="營業稅">${fmtAmt(vTax)}</td>
         <td style="${amtStyleBase}font-weight:700;color:#1a202c" title="含稅總額">${totalAmt.toLocaleString()}</td>
-        <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
+        <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="event.stopPropagation();openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
         <td class="hd-reason ${reasonCls}" style="padding-right:38px" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
         <td style="white-space:nowrap;">${voucherCell}</td>
       </tr>`;
@@ -8011,6 +8027,42 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
 
 // ── 點擊歷史紀錄頭部的「匹配成功/匹配異常/人工待確認/未匹配」徽章
 //    自動捲動到該分類的第一筆明細列，並短暫高亮 ──
+// ── 回到頂部：捲動 histBody 至最上方 ──
+function scrollHistBodyToTop() {
+  // 優先捲動歷史頁的 body
+  const histBody = document.getElementById('histBody');
+  if (histBody && histBody.scrollHeight > histBody.clientHeight) {
+    histBody.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  // 其次：頁面本身捲動
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── 捲動超過 200px 時，顯示「回到頂部」按鈕 ──
+(function _initBackToTopBtn() {
+  function check() {
+    const btn = document.getElementById('backToTopBtn');
+    if (!btn) return;
+    const histBody = document.getElementById('histBody');
+    const histTop = histBody && histBody.offsetParent !== null ? histBody.scrollTop : 0;
+    const winTop = window.scrollY || document.documentElement.scrollTop;
+    const show = histTop > 200 || winTop > 200;
+    btn.style.display = show ? 'block' : 'none';
+  }
+  // 綁定捲動監聽（兩個來源）
+  const tryBind = () => {
+    const histBody = document.getElementById('histBody');
+    if (histBody) histBody.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('scroll', check, { passive: true });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryBind);
+  } else {
+    tryBind();
+  }
+})();
+
 function scrollToFirstStatusRow(badgeEl, statusKey) {
   const record = badgeEl && badgeEl.closest ? badgeEl.closest('.hist-record') : null;
   if (!record) return;
@@ -8623,10 +8675,12 @@ function _updateHistImgNav() {
   if (counter) counter.textContent = total > 0 ? `${idx + 1} / ${total}` : '0 / 0';
   if (prev) prev.disabled = idx <= 0;
   if (next) next.disabled = idx >= total - 1;
-  // 只有一張時不顯示按鈕
-  if (prev) prev.style.display = total > 1 ? 'flex' : 'none';
-  if (next) next.style.display = total > 1 ? 'flex' : 'none';
-  if (counter) counter.style.display = total > 1 ? 'block' : 'none';
+  // 只有一張時隱藏上下張按鈕（counter 仍顯示）
+  if (prev) prev.style.display = total > 1 ? '' : 'none';
+  if (next) next.style.display = total > 1 ? '' : 'none';
+  // 計數器外層 wrap：有資料時顯示
+  const counterWrap = document.getElementById('histImgCounterWrap');
+  if (counterWrap) counterWrap.style.display = total > 0 ? '' : 'none';
 }
 
 function histImgNav(dir) {
