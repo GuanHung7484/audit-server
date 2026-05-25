@@ -1697,8 +1697,14 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
        onwheel="event.preventDefault();receiptZoomChange(event.deltaY<0?1:-1)">
   <div class="receipt-modal-footer">
     <button class="rm-btn" onclick="receiptZoomChange(-1);event.stopPropagation()" title="縮小">－</button>
-    <span class="rm-zoom-label" id="rmZoomLabel">100%</span>
-    <button class="rm-btn" onclick="receiptZoomChange(0);event.stopPropagation()" title="重設">⟳</button>
+    <input type="number" id="rmZoomInput" value="100" min="10" max="600" step="10"
+      onchange="receiptZoomSet(parseInt(this.value)||100);event.stopPropagation()"
+      onkeydown="if(event.key==='Enter'){receiptZoomSet(parseInt(this.value)||100);this.blur();event.stopPropagation();}"
+      onclick="event.stopPropagation()"
+      style="width:62px;text-align:right;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);border-radius:5px;color:#fff;padding:3px 6px;font-family:inherit;font-size:12px;font-weight:700;outline:none"
+      title="輸入百分比後按 Enter">
+    <span class="rm-zoom-label" id="rmZoomLabel" style="margin-left:-2px;min-width:auto;padding-right:4px">%</span>
+    <button class="rm-btn" onclick="receiptZoomChange(0);event.stopPropagation()" title="重設為適合螢幕">⟳</button>
     <button class="rm-btn" onclick="receiptZoomChange(1);event.stopPropagation()" title="放大">＋</button>
     <span style="width:14px"></span>
     <span style="color:rgba(255,255,255,.55);font-size:11px;font-weight:700;margin-right:4px">人工修改狀態：</span>
@@ -1778,8 +1784,13 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
     <div id="histImgContent" onwheel="if(document.getElementById('histZoomImg')){event.preventDefault();histImgZoomChange(event.deltaY<0?1:-1);}"></div>
     <div class="hist-zoom-bar" id="histZoomBar" style="display:none">
       <button class="hist-zoom-btn" onclick="histImgZoomChange(-1)">－ 縮小</button>
-      <span class="hist-zoom-pct" id="histZoomLabel">100%</span>
-      <button class="hist-zoom-btn" onclick="histImgZoomChange(0)">⟳ 重設</button>
+      <input type="number" id="histZoomInput" value="100" min="10" max="500" step="10"
+        onchange="histImgZoomSet(parseInt(this.value)||100)"
+        onkeydown="if(event.key==='Enter'){histImgZoomSet(parseInt(this.value)||100);this.blur();}"
+        style="width:62px;text-align:right;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);border-radius:5px;color:#fff;padding:3px 6px;font-family:inherit;font-size:13px;font-weight:700;outline:none"
+        title="輸入百分比後按 Enter">
+      <span class="hist-zoom-pct" id="histZoomLabel" style="color:#fff;font-size:13px;font-weight:700;margin-left:-2px;min-width:auto;padding-right:4px">%</span>
+      <button class="hist-zoom-btn" onclick="histImgZoomChange(0)">⟳ 重設（適合螢幕）</button>
       <button class="hist-zoom-btn" onclick="histImgZoomChange(1)">＋ 放大</button>
     </div>
     <!-- ★ 對應支出明細 AI 核對結果 -->
@@ -4728,11 +4739,11 @@ function renderReceiptMatchBar(voucherIdx) {
   const sumTotal = sumPretax + sumTax;  // ★ 多筆品項含稅總額加總 = 收據總額
   const receiptTotal = sumTotal;        // alias 方便閱讀
   const diffHtml = (_vTotalRm != null || sumTotal > 0)
-    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);line-height:1.8">
-        <span style="margin-right:14px">收據總額：<b style="color:#86efac;font-family:monospace" title="多筆品項含稅總額加總">${receiptTotal.toLocaleString()}</b></span>
-        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace" title="AI 從憑證辨識的總金額">${(_vTotalRm != null ? _vTotalRm : sumTotal).toLocaleString()}</b></span>
-        <span style="margin-right:14px">Excel 合計：<b style="color:#93c5fd;font-family:monospace">${excelSum.toLocaleString()}</b></span>
-        <span>差額：<b style="color:${Math.abs((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum).toLocaleString()}</b></span>
+    ? `<div style="text-align:right;padding:10px 14px;font-size:15px;font-weight:600;color:rgba(255,255,255,.92);line-height:1.8">
+        <span style="margin-right:16px">收據總額：<b style="color:#86efac;font-family:monospace;font-size:16px" title="多筆品項含稅總額加總">${receiptTotal.toLocaleString()}</b></span>
+        <span style="margin-right:16px">憑證合計：<b style="color:#fbbf24;font-family:monospace;font-size:16px" title="AI 從憑證辨識的總金額">${(_vTotalRm != null ? _vTotalRm : sumTotal).toLocaleString()}</b></span>
+        <span style="margin-right:16px">Excel 合計：<b style="color:#93c5fd;font-family:monospace;font-size:16px">${excelSum.toLocaleString()}</b></span>
+        <span>差額：<b style="color:${Math.abs((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum) < 2 ? '#4ade80' : '#f87171'};font-family:monospace;font-size:16px">${((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum).toLocaleString()}</b></span>
       </div>`
     : '';
 
@@ -4973,10 +4984,18 @@ function openReceiptModal(voucherIdx) {
   receiptModalIdx = voucherIdx;
   receiptModalZoom = 1; _rmPanX = 0; _rmPanY = 0;
   const img = document.getElementById('receiptModalImg');
+  img.style.cursor = 'grab';
+  // ★ 圖片載入完成後自動「fit to screen」（受 CSS max-width:88vw / max-height:60vh 限制）
+  img.onload = () => {
+    receiptModalZoom = 1; _rmPanX = 0; _rmPanY = 0;
+    _applyRmTransform();
+    const inp = document.getElementById('rmZoomInput');
+    if (inp) inp.value = 100;
+  };
   img.src = v.url;
   img.style.transform = 'translate(0px,0px) scale(1)';
-  img.style.cursor = 'grab';
-  document.getElementById('rmZoomLabel').textContent = '100%';
+  const inp = document.getElementById('rmZoomInput');
+  if (inp) inp.value = 100;
   document.getElementById('receiptModalName').textContent = '📎 ' + v.name;
   document.getElementById('receiptModal').classList.add('open');
   updateReceiptModalNav();
@@ -5008,9 +5027,18 @@ function closeReceiptModal(e) {
 }
 function receiptZoomChange(dir) {
   if (dir === 0) { receiptModalZoom = 1; _rmPanX = 0; _rmPanY = 0; }
-  else receiptModalZoom = Math.max(0.2, Math.min(6, receiptModalZoom + dir * 0.3));
+  else receiptModalZoom = Math.max(0.1, Math.min(6, receiptModalZoom + dir * 0.15));
   _applyRmTransform();
-  document.getElementById('rmZoomLabel').textContent = Math.round(receiptModalZoom * 100) + '%';
+  const inp = document.getElementById('rmZoomInput');
+  if (inp) inp.value = Math.round(receiptModalZoom * 100);
+}
+// ★ 使用者直接輸入百分比 → 縮放到指定大小
+function receiptZoomSet(pct) {
+  const z = Math.max(0.05, Math.min(6, (pct || 100) / 100));
+  receiptModalZoom = z;
+  _applyRmTransform();
+  const inp = document.getElementById('rmZoomInput');
+  if (inp) inp.value = Math.round(receiptModalZoom * 100);
 }
 function _applyRmTransform() {
   const img = document.getElementById('receiptModalImg');
@@ -7814,10 +7842,10 @@ function renderHistoryList() {
         <span class="hist-rec-file" title="${excelFile}">📊 ${excelFile}${monthBadge}</span>
         <span style="font-size:14px;color:#5b2c0c;white-space:nowrap;font-weight:600">憑證 ${voucherCount} 張</span>
         <span class="hist-rec-badges">
-          <span class="hbadge hb-ok" title="以憑證為基準：${vOk} 張匹配成功"><span class="hb-label">匹配成功</span><span class="hb-num">✓${vOk}</span></span>
-          <span class="hbadge hb-err" title="以憑證為基準：${vErr} 張匹配異常"><span class="hb-label">匹配異常</span><span class="hb-num">✗${vErr}</span></span>
-          <span class="hbadge hb-wait" title="以憑證為基準：${vWait} 張待人工確認"><span class="hb-label">人工待確認</span><span class="hb-num">?${vWait}</span></span>
-          <span class="hbadge hb-none" title="${vUnmatched} 張憑證未匹配（顯示於下方酒紅色列）"><span class="hb-label">未匹配</span><span class="hb-num">${vUnmatched}</span></span>
+          <span class="hbadge hb-ok" style="cursor:pointer" title="點擊跳至第一筆匹配成功明細" onclick="scrollToFirstStatusRow(this,'ok')"><span class="hb-label">匹配成功</span><span class="hb-num">✓${vOk}</span></span>
+          <span class="hbadge hb-err" style="cursor:pointer" title="點擊跳至第一筆匹配異常明細" onclick="scrollToFirstStatusRow(this,'err')"><span class="hb-label">匹配異常</span><span class="hb-num">✗${vErr}</span></span>
+          <span class="hbadge hb-wait" style="cursor:pointer" title="點擊跳至第一筆人工待確認明細" onclick="scrollToFirstStatusRow(this,'wait')"><span class="hb-label">人工待確認</span><span class="hb-num">?${vWait}</span></span>
+          <span class="hbadge hb-none" style="cursor:pointer" title="點擊跳至第一筆未匹配憑證" onclick="scrollToFirstStatusRow(this,'unmatched')"><span class="hb-label">未匹配</span><span class="hb-num">${vUnmatched}</span></span>
         </span>
         <button onclick="event.stopPropagation();openReassignClient(${id})" title="重新指派客戶" style="background:#fef0d8;border:1px solid #d4a258;color:#5b2c0c;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">← 重新指派</button>
         <button onclick="event.stopPropagation();exportHistoryExcel(${id})" title="匯出此筆紀錄為 Excel" style="background:#ebf8ff;border:1px solid #bee3f8;color:#2b6cb0;border-radius:7px;padding:6px 14px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;white-space:nowrap;margin-left:6px;">📥 匯出</button>
@@ -7841,6 +7869,36 @@ function toggleHistDetail(idx) {
   if (!detail) return;
   detail.classList.toggle('open');
   if (arrow) arrow.classList.toggle('open');
+}
+
+// ── 點擊歷史紀錄頭部的「匹配成功/匹配異常/人工待確認/未匹配」徽章
+//    自動捲動到該分類的第一筆明細列，並短暫高亮 ──
+function scrollToFirstStatusRow(badgeEl, statusKey) {
+  const record = badgeEl && badgeEl.closest ? badgeEl.closest('.hist-record') : null;
+  if (!record) return;
+  const clsMap = {
+    ok: 'hr-ok',
+    err: 'hr-err',
+    wait: 'hr-wait',
+    unmatched: 'hr-unmatched-voucher',
+  };
+  const cls = clsMap[statusKey];
+  if (!cls) return;
+  const firstRow = record.querySelector('tr.' + cls);
+  if (!firstRow) {
+    try { showToast('此筆紀錄沒有對應分類的明細'); } catch(_){}
+    return;
+  }
+  firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // 短暫高亮，方便辨識
+  const origBg = firstRow.style.backgroundColor || '';
+  const origTrans = firstRow.style.transition || '';
+  firstRow.style.transition = 'background-color .4s ease';
+  firstRow.style.backgroundColor = '#fff3c4';
+  setTimeout(() => {
+    firstRow.style.backgroundColor = origBg;
+    setTimeout(() => { firstRow.style.transition = origTrans; }, 450);
+  }, 1300);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -8076,11 +8134,11 @@ function renderHistMatchBar(voucherName, histId, targetEl) {
   const sumTotalH = sumPretaxH + Math.round(sumPretaxH * 0.05);  // ★ 多筆品項含稅總額加總 = 收據總額
   const receiptTotalH = sumTotalH;
   const diffHtmlH = (_totalH != null || sumTotalH > 0)
-    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);line-height:1.8">
-        <span style="margin-right:14px">收據總額：<b style="color:#86efac;font-family:monospace" title="多筆品項含稅總額加總">${receiptTotalH.toLocaleString()}</b></span>
-        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace" title="AI 從憑證辨識的總金額">${(_totalH != null ? _totalH : sumTotalH).toLocaleString()}</b></span>
-        <span style="margin-right:14px">Excel 合計：<b style="color:#93c5fd;font-family:monospace">${excelSumH.toLocaleString()}</b></span>
-        <span>差額：<b style="color:${Math.abs((_totalH != null ? _totalH : sumTotalH) - excelSumH) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${((_totalH != null ? _totalH : sumTotalH) - excelSumH).toLocaleString()}</b></span>
+    ? `<div style="text-align:right;padding:10px 14px;font-size:15px;font-weight:600;color:rgba(255,255,255,.92);line-height:1.8">
+        <span style="margin-right:16px">收據總額：<b style="color:#86efac;font-family:monospace;font-size:16px" title="多筆品項含稅總額加總">${receiptTotalH.toLocaleString()}</b></span>
+        <span style="margin-right:16px">憑證合計：<b style="color:#fbbf24;font-family:monospace;font-size:16px" title="AI 從憑證辨識的總金額">${(_totalH != null ? _totalH : sumTotalH).toLocaleString()}</b></span>
+        <span style="margin-right:16px">Excel 合計：<b style="color:#93c5fd;font-family:monospace;font-size:16px">${excelSumH.toLocaleString()}</b></span>
+        <span>差額：<b style="color:${Math.abs((_totalH != null ? _totalH : sumTotalH) - excelSumH) < 2 ? '#4ade80' : '#f87171'};font-family:monospace;font-size:16px">${((_totalH != null ? _totalH : sumTotalH) - excelSumH).toLocaleString()}</b></span>
       </div>`
     : '';
 
@@ -8603,16 +8661,20 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
     content.appendChild(img);
     _histPanX = 0; _histPanY = 0;
     img.onload = () => {
+      // ★ 計算「適合螢幕」的縮放比例
       const cw = content.clientWidth || 600;
       const ch = content.clientHeight || 500;
       const fitZoom = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
-      _histZoomLevel = Math.min(1, Math.max(0.1, fitZoom));
+      _histFitZoom = Math.min(1, Math.max(0.1, fitZoom));
+      _histZoomLevel = _histFitZoom;
       _histPanX = 0; _histPanY = 0;
       _applyHistTransform();
+      // 同步更新輸入框
+      const inp = document.getElementById('histZoomInput');
+      if (inp) inp.value = Math.round(_histZoomLevel * 100);
       const lbl = document.getElementById('histZoomLabel');
-      if (lbl) lbl.textContent = Math.round(_histZoomLevel * 100) + '%';
+      if (lbl) lbl.textContent = '%';
     };
-    document.getElementById('histZoomLabel').textContent = '—';
     document.getElementById('histZoomBar').style.display = 'flex';
   }
 
@@ -8673,11 +8735,25 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
 }
 
 let _histZoomLevel = 1;
+let _histFitZoom = 1;  // ★ 開啟時計算的「適合螢幕」縮放，重設時用
 function histImgZoomChange(dir) {
-  if (dir === 0) { _histZoomLevel = 1; _histPanX = 0; _histPanY = 0; }
-  else _histZoomLevel = Math.max(0.3, Math.min(5, _histZoomLevel + dir * 0.3));
+  if (dir === 0) { _histZoomLevel = _histFitZoom || 1; _histPanX = 0; _histPanY = 0; }
+  else _histZoomLevel = Math.max(0.1, Math.min(6, _histZoomLevel + dir * 0.15));
   _applyHistTransform();
-  document.getElementById('histZoomLabel').textContent = Math.round(_histZoomLevel * 100) + '%';
+  _updateHistZoomInput();
+}
+// ★ 使用者直接輸入百分比
+function histImgZoomSet(pct) {
+  const z = Math.max(0.05, Math.min(6, (pct || 100) / 100));
+  _histZoomLevel = z;
+  _applyHistTransform();
+  _updateHistZoomInput();
+}
+function _updateHistZoomInput() {
+  const inp = document.getElementById('histZoomInput');
+  if (inp) inp.value = Math.round(_histZoomLevel * 100);
+  const lbl = document.getElementById('histZoomLabel');
+  if (lbl && lbl.id === 'histZoomLabel' && lbl.textContent !== '%') lbl.textContent = '%';
 }
 function _applyHistTransform() {
   const img = document.getElementById('histZoomImg');
