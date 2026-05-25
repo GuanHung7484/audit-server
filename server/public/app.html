@@ -1986,13 +1986,10 @@ function renderOverviewPage() {
   _renderOvHistFiltered();
 }
 
-// 點擊「查看明細」進入歷史頁，只顯示這一筆紀錄
+// 點擊「查看明細」進入歷史頁，只顯示這一筆紀錄（原本展開模式，非彈窗）
 function ovViewHistory(id) {
-  // ★ 改為彈出視窗顯示明細，而不是切換到完整頁面
-  //   彈窗只顯示明細表格，不含憑證圖片；若使用者要看圖片可在彈窗內點「👁 查看」
-  try {
-    openHistoryDetailPopup(id);
-  } catch(e) { console.warn(e); }
+  __historyTargetId = id;
+  if (typeof switchToPage === 'function') switchToPage('history');
 }
 
 // ════════════════════════════════════════════════════════════
