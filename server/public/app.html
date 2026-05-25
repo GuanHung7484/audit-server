@@ -1971,11 +1971,100 @@ function renderOverviewPage() {
 
 // 點擊「查看明細」進入歷史頁，只顯示這一筆紀錄
 function ovViewHistory(id) {
+  // ★ 改為彈出視窗顯示明細，而不是切換到完整頁面
+  //   彈窗只顯示明細表格，不含憑證圖片；若使用者要看圖片可在彈窗內點「👁 查看」
   try {
-    __historyTargetId = id;  // 設定單筆模式
-    if (typeof switchToPage === 'function') switchToPage('history');
-    // 明細區已預設展開，不再需要 toggle
+    openHistoryDetailPopup(id);
   } catch(e) { console.warn(e); }
+}
+
+// ════════════════════════════════════════════════════════════
+// ── 歷史紀錄明細彈窗：點擊歷史列 → 彈出此 modal ──
+// 只顯示明細表格，不含憑證圖片；按列上的「👁 查看」可開啟憑證圖片
+// ════════════════════════════════════════════════════════════
+function openHistoryDetailPopup(id) {
+  const history = loadHistory();
+  const entry = history.find(e => e.id === id);
+  if (!entry) {
+    showToast('找不到該筆紀錄');
+    return;
+  }
+
+  // 先移除舊的彈窗（避免疊出多個）
+  const existing = document.getElementById('histDetailOverlay');
+  if (existing) try { document.body.removeChild(existing); } catch(_){}
+
+  // 設定單筆模式以供 renderHistoryList 等同步使用（不切頁）
+  __historyTargetId = id;
+
+  // 建立 overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'histDetailOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit;overflow:auto';
+  overlay.innerHTML = `
+    <div style="background:#fffaf1;border:2px solid #d4a258;border-radius:18px;max-width:1500px;width:100%;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 18px 60px rgba(0,0,0,.45);overflow:hidden;position:relative">
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid #f0d9b0;background:#fef5e3;flex-shrink:0">
+        <div style="font-size:22px">📋</div>
+        <h3 style="font-size:18px;font-weight:900;color:#3a1f08;margin:0;letter-spacing:.5px">歷史審核紀錄明細</h3>
+        <span style="font-size:13px;color:#8a6e4a;font-weight:600">${entry.clientName ? `（${entry.clientName}）` : ''}</span>
+        <button onclick="closeHistoryDetailPopup()" title="關閉" style="margin-left:auto;background:transparent;border:1px solid #d4a258;color:#5b2c0c;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer;font-family:inherit;font-weight:700">✕</button>
+      </div>
+      <div id="histDetailPopupBody" style="flex:1;overflow-y:auto;padding:14px 18px;background:#fffaf1">
+        <div style="text-align:center;color:#8a6e4a;padding:40px">載入中…</div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  // 點背景關閉
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeHistoryDetailPopup(); });
+  // Esc 關閉
+  document.addEventListener('keydown', _histDetailEsc);
+
+  // 等 DOM 就緒後渲染明細內容到彈窗中
+  setTimeout(() => renderHistoryDetailInPopup(id), 0);
+}
+
+function _histDetailEsc(ev) {
+  if (ev.key === 'Escape') closeHistoryDetailPopup();
+}
+
+function closeHistoryDetailPopup() {
+  const overlay = document.getElementById('histDetailOverlay');
+  if (overlay) try { document.body.removeChild(overlay); } catch(_){}
+  document.removeEventListener('keydown', _histDetailEsc);
+  __historyTargetId = null;
+}
+
+// 將該筆歷史紀錄的明細表格渲染到彈窗 body 中（重用 renderHistoryList 邏輯）
+function renderHistoryDetailInPopup(id) {
+  const body = document.getElementById('histDetailPopupBody');
+  if (!body) return;
+  // 暫時把 histBody 借來給 renderHistoryList 用，渲染完再剪下內容貼回彈窗
+  let tempHistBody = document.getElementById('histBody');
+  let createdTemp = false;
+  if (!tempHistBody) {
+    // 若 histBody 不存在（從未進過歷史頁），臨時建立一個
+    tempHistBody = document.createElement('div');
+    tempHistBody.id = 'histBody';
+    tempHistBody.style.display = 'none';
+    document.body.appendChild(tempHistBody);
+    createdTemp = true;
+  }
+  try {
+    __historyTargetId = id;
+    renderHistoryList();
+    body.innerHTML = tempHistBody.innerHTML;
+    // 移除「📎 本次憑證」縮圖區（不顯示憑證圖案，使用者可點每列的「👁 查看」開啟圖片）
+    body.querySelectorAll('.hist-detail').forEach(detail => {
+      Array.from(detail.children).forEach(child => {
+        if (child.tagName === 'DIV' && (child.textContent || '').includes('本次憑證')) {
+          try { child.remove(); } catch(_){}
+        }
+      });
+    });
+  } finally {
+    if (createdTemp) try { document.body.removeChild(tempHistBody); } catch(_){}
+  }
 }
 
 // 刪除歷史記錄
@@ -4574,13 +4663,17 @@ function renderReceiptMatchBar(voucherIdx) {
   const reasonsHtml = matched.map(m => _formatAIReason(m.chk.aiReason || '')).filter(Boolean).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${r}</div>`).join('');
 
   // 品名/數量/單價/未稅/營業稅/含稅 每個品項一行
-  const namesHtml = itemsRm.map(it => `<div>${it.name}</div>`).join('');
-  const qtysHtml = itemsRm.map(it => `<div>${_fmtN(it.qty)}</div>`).join('');
-  const unitsHtml = itemsRm.map(it => `<div>${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style="opacity:.35">—</span>'}</div>`).join('');
+  // ★ 多品項之間以分隔白線區隔（最後一個不加）
+  const _sepStyle = (i, len) => i < len - 1
+    ? 'border-bottom:1px solid rgba(255,255,255,.22);padding-bottom:5px;margin-bottom:5px'
+    : '';
+  const namesHtml = itemsRm.map((it, i) => `<div style="${_sepStyle(i, itemsRm.length)}">${it.name}</div>`).join('');
+  const qtysHtml = itemsRm.map((it, i) => `<div style="${_sepStyle(i, itemsRm.length)}">${_fmtN(it.qty)}</div>`).join('');
+  const unitsHtml = itemsRm.map((it, i) => `<div style="${_sepStyle(i, itemsRm.length)}">${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style="opacity:.35">—</span>'}</div>`).join('');
   const pretaxList = itemsRm.map(it => it.amount != null ? Number(it.amount) : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null));
-  const pretaxsHtml = pretaxList.map(p => `<div>${_fmtN(p)}</div>`).join('');
-  const taxsHtml = pretaxList.map(p => `<div>${_fmtN(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
-  const totalsHtml = pretaxList.map(p => `<div>${_fmtN(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
+  const pretaxsHtml = pretaxList.map((p, i) => `<div style="${_sepStyle(i, pretaxList.length)}">${_fmtN(p)}</div>`).join('');
+  const taxsHtml = pretaxList.map((p, i) => `<div style="${_sepStyle(i, pretaxList.length)}">${_fmtN(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
+  const totalsHtml = pretaxList.map((p, i) => `<div style="${_sepStyle(i, pretaxList.length)}">${_fmtN(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
 
   // 表頭：# | 日期 | 統編 | 品名 | 數量 | 單價 | 未稅 | 營業稅 | 含稅總額 | 結果 | AI 核對說明
   const headerHtml = `<div class="rm-match-head">
@@ -4612,13 +4705,15 @@ function renderReceiptMatchBar(voucherIdx) {
     <div class="rm-match-reason">${reasonsHtml || '<span style=\"opacity:.35\">—</span>'}</div>
   </div>`;
 
-  // 合計
+  // 合計：未稅、營業稅、含稅總額（= 收據總額）
   const sumPretax = pretaxList.reduce((s, p) => s + (p || 0), 0);
   const sumTax = Math.round(sumPretax * 0.05);
-  const sumTotal = sumPretax + sumTax;
+  const sumTotal = sumPretax + sumTax;  // ★ 多筆品項含稅總額加總 = 收據總額
+  const receiptTotal = sumTotal;        // alias 方便閱讀
   const diffHtml = (_vTotalRm != null || sumTotal > 0)
-    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85)">
-        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace">${(_vTotalRm != null ? _vTotalRm : sumTotal).toLocaleString()}</b></span>
+    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);line-height:1.8">
+        <span style="margin-right:14px">收據總額：<b style="color:#86efac;font-family:monospace" title="多筆品項含稅總額加總">${receiptTotal.toLocaleString()}</b></span>
+        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace" title="AI 從憑證辨識的總金額">${(_vTotalRm != null ? _vTotalRm : sumTotal).toLocaleString()}</b></span>
         <span style="margin-right:14px">Excel 合計：<b style="color:#93c5fd;font-family:monospace">${excelSum.toLocaleString()}</b></span>
         <span>差額：<b style="color:${Math.abs((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${((_vTotalRm != null ? _vTotalRm : sumTotal) - excelSum).toLocaleString()}</b></span>
       </div>`
@@ -7619,18 +7714,19 @@ function renderHistoryList() {
       const taxIdCell = r.voucherTaxId
         ? `<span style="font-family:monospace;color:#2d3748;font-size:13px">${r.voucherTaxId}</span>`
         : `<span style="color:#cbd5e0">—</span>`;
-      return `<tr class="${cls}">
-        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700" title="點擊修改 # 行號" onclick="editHistRowField(${id},${originalIdx},'excelRow',this)">${rowNum}</td>
+      const _safeVN = (r.voucherName || '').replace(/'/g,"\\'");
+      return `<tr class="${cls}" style="cursor:pointer" onclick="showVoucherInfoPopup(event,'${_safeVN}',${id})" title="點擊查看此筆憑證明細">
+        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700" title="點擊修改 # 行號" onclick="event.stopPropagation();editHistRowField(${id},${originalIdx},'excelRow',this)">${rowNum}</td>
         <td>${r.sheet}</td>
-        <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
+        <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="event.stopPropagation();editHistRowField(${id},${originalIdx},'date',this)">${r.date||''}</td>
         <td style="font-weight:700;max-width:200px;line-height:1.45;font-size:13px" title="Excel 主項目：${r.mainItem||''}">${productName}</td>
         <td style="text-align:center" title="憑證統一編號">${taxIdCell}</td>
         <td style="${amtStyleBase}color:#4a5568" title="未稅金額">${fmtAmt(vPretax)}</td>
         <td style="${amtStyleBase}color:#4a5568" title="營業稅">${fmtAmt(vTax)}</td>
         <td style="${amtStyleBase}font-weight:700;color:#1a202c" title="含稅總額">${totalAmt.toLocaleString()}</td>
-        <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
+        <td style="white-space:nowrap"><span class="hd-status ${statusBgCls}" style="cursor:pointer" onclick="event.stopPropagation();openHistStatusPicker(${id},${originalIdx})" title="點擊修改核對結果">${statusLabel}</span></td>
         <td class="hd-reason ${reasonCls}" style="padding-right:38px" title="${(r.aiReason||'').replace(/"/g,'&quot;')}">${r.aiReason ? _formatAiReason(r.aiReason) : '—'}</td>
-        <td style="white-space:nowrap;">${voucherCell}</td>
+        <td style="white-space:nowrap;" onclick="event.stopPropagation()">${voucherCell}</td>
       </tr>`;
     }).join('');
 
@@ -7818,8 +7914,44 @@ function deleteHistoryEntry(id, event) {
 }
 
 // ── 歷史圖片底部：顯示對應支出明細 AI 核對結果 ──
-function renderHistMatchBar(voucherName, histId) {
-  const content = document.getElementById('histMatchContent');
+// ★★★ 點歷史紀錄列 → 彈出視窗顯示憑證預覽明細（無圖片）
+function showVoucherInfoPopup(event, voucherName, histId) {
+  if (event) event.stopPropagation();
+  if (!voucherName) return;
+  // 先清掉舊的彈窗（避免重疊）
+  try { document.getElementById('voucherInfoPopup')?.remove(); } catch(_){}
+  const overlay = document.createElement('div');
+  overlay.id = 'voucherInfoPopup';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit';
+  overlay.innerHTML = `
+    <div style="background:#1a202c;border:2px solid #4a5568;border-radius:12px;padding:18px 22px;max-width:1400px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 16px 50px rgba(0,0,0,.5);position:relative">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:10px">
+        <div style="font-size:15px;font-weight:800;color:#fff">📋 憑證明細：<span style="color:#fbbf24;font-family:monospace">${voucherName}</span></div>
+        <button id="__vipClose" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer">✕ 關閉</button>
+      </div>
+      <div id="__vipContent"></div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);text-align:center">
+        <button id="__vipViewImg" style="background:#2b6cb0;border:1px solid #4299e1;color:#fff;border-radius:7px;padding:7px 18px;font-size:13px;font-weight:700;cursor:pointer">👁 查看憑證圖片</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => { try { overlay.remove(); } catch(_){} };
+  overlay.querySelector('#__vipClose').onclick = close;
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  // 用同樣的渲染邏輯，但寫入彈窗內的 div
+  const contentEl = overlay.querySelector('#__vipContent');
+  renderHistMatchBar(voucherName, histId, contentEl);
+  // 「查看憑證圖片」按鈕：關掉彈窗 + 打開圖片預覽
+  overlay.querySelector('#__vipViewImg').onclick = () => {
+    close();
+    if (typeof showHistVoucherImg === 'function') {
+      showHistVoucherImg(null, voucherName, histId);
+    }
+  };
+}
+
+function renderHistMatchBar(voucherName, histId, targetEl) {
+  const content = targetEl || document.getElementById('histMatchContent');
   if (!content) return;
 
   // 從歷史 entry 的 rows 找出 voucherName 對應的明細
@@ -7879,13 +8011,17 @@ function renderHistMatchBar(voucherName, histId) {
   const badgeLabelH = worstSt === '正確' ? '✓ 正確' : worstSt === '不正確' ? '✗ 不正確' : worstSt === '待確認' ? '? 待確認' : '— 未匹配';
   const reasonsH = matchedRowsWithIdx.map(({row: r}) => _formatAIReason(r.aiReason || '')).filter(Boolean).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${r}</div>`).join('');
 
-  const namesHtmlH = itemsH.map(it => `<div>${it.name}</div>`).join('');
-  const qtysHtmlH = itemsH.map(it => `<div>${_fmtH(it.qty)}</div>`).join('');
-  const unitsHtmlH = itemsH.map(it => `<div>${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style=\"opacity:.35\">—</span>'}</div>`).join('');
+  // ★ 多品項之間以分隔白線區隔（最後一個不加）
+  const _sepStyleH = (i, len) => i < len - 1
+    ? 'border-bottom:1px solid rgba(255,255,255,.22);padding-bottom:5px;margin-bottom:5px'
+    : '';
+  const namesHtmlH = itemsH.map((it, i) => `<div style="${_sepStyleH(i, itemsH.length)}">${it.name}</div>`).join('');
+  const qtysHtmlH = itemsH.map((it, i) => `<div style="${_sepStyleH(i, itemsH.length)}">${_fmtH(it.qty)}</div>`).join('');
+  const unitsHtmlH = itemsH.map((it, i) => `<div style="${_sepStyleH(i, itemsH.length)}">${it.unit_price != null ? Number(it.unit_price).toLocaleString() : '<span style=\"opacity:.35\">—</span>'}</div>`).join('');
   const pretaxListH = itemsH.map(it => it.amount != null ? Number(it.amount) : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null));
-  const pretaxsHtmlH = pretaxListH.map(p => `<div>${_fmtH(p)}</div>`).join('');
-  const taxsHtmlH = pretaxListH.map(p => `<div>${_fmtH(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
-  const totalsHtmlH = pretaxListH.map(p => `<div>${_fmtH(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
+  const pretaxsHtmlH = pretaxListH.map((p, i) => `<div style="${_sepStyleH(i, pretaxListH.length)}">${_fmtH(p)}</div>`).join('');
+  const taxsHtmlH = pretaxListH.map((p, i) => `<div style="${_sepStyleH(i, pretaxListH.length)}">${_fmtH(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
+  const totalsHtmlH = pretaxListH.map((p, i) => `<div style="${_sepStyleH(i, pretaxListH.length)}">${_fmtH(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
 
   const headerHtmlH = `<div class="hist-match-head">
     <span>#</span>
@@ -7915,12 +8051,14 @@ function renderHistMatchBar(voucherName, histId) {
     <div class="hist-match-reason">${reasonsH || '<span style=\"opacity:.35\">—</span>'}</div>
   </div>`;
 
-  // 合計差額
+  // 合計：未稅、營業稅、含稅總額（= 收據總額）
   const sumPretaxH = pretaxListH.reduce((s, p) => s + (p || 0), 0);
-  const sumTotalH = sumPretaxH + Math.round(sumPretaxH * 0.05);
+  const sumTotalH = sumPretaxH + Math.round(sumPretaxH * 0.05);  // ★ 多筆品項含稅總額加總 = 收據總額
+  const receiptTotalH = sumTotalH;
   const diffHtmlH = (_totalH != null || sumTotalH > 0)
-    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85)">
-        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace">${(_totalH != null ? _totalH : sumTotalH).toLocaleString()}</b></span>
+    ? `<div style="text-align:right;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);line-height:1.8">
+        <span style="margin-right:14px">收據總額：<b style="color:#86efac;font-family:monospace" title="多筆品項含稅總額加總">${receiptTotalH.toLocaleString()}</b></span>
+        <span style="margin-right:14px">憑證合計：<b style="color:#fbbf24;font-family:monospace" title="AI 從憑證辨識的總金額">${(_totalH != null ? _totalH : sumTotalH).toLocaleString()}</b></span>
         <span style="margin-right:14px">Excel 合計：<b style="color:#93c5fd;font-family:monospace">${excelSumH.toLocaleString()}</b></span>
         <span>差額：<b style="color:${Math.abs((_totalH != null ? _totalH : sumTotalH) - excelSumH) < 2 ? '#4ade80' : '#f87171'};font-family:monospace">${((_totalH != null ? _totalH : sumTotalH) - excelSumH).toLocaleString()}</b></span>
       </div>`
