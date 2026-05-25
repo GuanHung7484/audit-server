@@ -568,12 +568,34 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .rm-tb-info { display:flex; align-items:center; gap:10px; flex:1; min-width:0; overflow:hidden; }
 /* Image area */
 .rm-img-area { flex:1; overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; min-height:120px; background:#000; }
-/* Corner resize handles — 在 rm-window 外層（用 position:absolute + z-index） */
-.rm-resize { position:absolute; width:22px; height:22px; z-index:30; }
-.rm-resize.nw { top:-2px; left:-2px; cursor:nw-resize; border-top:4px solid #4a9fd4; border-left:4px solid #4a9fd4; border-radius:10px 0 0 0; }
-.rm-resize.ne { top:-2px; right:-2px; cursor:ne-resize; border-top:4px solid #4a9fd4; border-right:4px solid #4a9fd4; border-radius:0 10px 0 0; }
-.rm-resize.sw { bottom:-2px; left:-2px; cursor:sw-resize; border-bottom:4px solid #4a9fd4; border-left:4px solid #4a9fd4; border-radius:0 0 0 10px; }
-.rm-resize.se { bottom:-2px; right:-2px; cursor:se-resize; border-bottom:4px solid #4a9fd4; border-right:4px solid #4a9fd4; border-radius:0 0 10px 0; }
+/* Corner resize handles — 明顯的藍色方塊，內含對角箭頭 */
+.rm-resize {
+  position:absolute !important;
+  width:30px !important;
+  height:30px !important;
+  z-index:9999 !important;
+  background:rgba(74,159,212,.7) !important;
+  border:2px solid #fff !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  color:#fff !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.5) !important;
+  transition:background .15s, transform .15s !important;
+  pointer-events:auto !important;
+}
+.rm-resize:hover { background:#4a9fd4 !important; transform:scale(1.15) !important; }
+.rm-resize.nw { top:-4px !important; left:-4px !important; cursor:nw-resize !important; border-radius:10px 4px 4px 4px !important; }
+.rm-resize.ne { top:-4px !important; right:-4px !important; cursor:ne-resize !important; border-radius:4px 10px 4px 4px !important; }
+.rm-resize.sw { bottom:-4px !important; left:-4px !important; cursor:sw-resize !important; border-radius:4px 4px 4px 10px !important; }
+.rm-resize.se { bottom:-4px !important; right:-4px !important; cursor:se-resize !important; border-radius:4px 4px 10px 4px !important; }
+.rm-resize.nw::before { content:'⤡'; transform:rotate(0deg); }
+.rm-resize.ne::before { content:'⤢'; }
+.rm-resize.sw::before { content:'⤢'; transform:rotate(180deg); }
+.rm-resize.se::before { content:'⤡'; transform:rotate(180deg); }
 /* Image */
 .receipt-modal-img { max-width:100%; max-height:100%; border-radius:4px; transform-origin:center center; transition:transform .12s; box-shadow:0 4px 20px rgba(0,0,0,.5); display:block; }
 /* Titlebar elements */
@@ -1744,6 +1766,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
     <div class="rm-titlebar" id="rmTitlebar" onmousedown="rmDragStart(event)">
       <div class="rm-tb-info">
         <span class="receipt-modal-counter" id="receiptModalCounter">1 / 1</span>
+        <span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:.5px">v2026-05-25</span>
         <span class="receipt-modal-name" id="receiptModalName"></span>
       </div>
       <button class="receipt-modal-close" onclick="document.getElementById('receiptModal').classList.remove('open')" title="關閉">✕</button>
