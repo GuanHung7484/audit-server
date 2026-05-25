@@ -8624,13 +8624,35 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
   const title   = document.getElementById('histImgTitle');
   const content = document.getElementById('histImgContent');
 
-  // ── 設定導航狀態（從歷史記錄裡找這筆的完整 voucherList）──
+  // ── 設定導航狀態（依「明細表格 # 欄位顯示順序」排列憑證）──
+  //   原本用 entry.voucherList（上傳順序）→ 改用表格中憑證實際出現的順序
+  //   ① 先依 entry.rows 中每列的 voucherName 依序去重收集（= 明細表的 # 順序）
+  //   ② 再把「未匹配憑證」（沒被任何 row 引用的）接在後面
   if (!keepState) {
     const history = loadHistory();
     const entry = history.find(e => e.id === histId);
-    const list = (entry && Array.isArray(entry.voucherList)) ? entry.voucherList : [voucherName];
-    _histImgState.list = list;
-    _histImgState.idx = Math.max(0, list.indexOf(voucherName));
+    const orderedList = [];
+    const seen = new Set();
+    if (entry && Array.isArray(entry.rows)) {
+      for (const r of entry.rows) {
+        if (r && r.voucherName && !seen.has(r.voucherName)) {
+          seen.add(r.voucherName);
+          orderedList.push(r.voucherName);
+        }
+      }
+    }
+    if (entry && Array.isArray(entry.voucherList)) {
+      for (const vn of entry.voucherList) {
+        if (vn && !seen.has(vn)) {
+          seen.add(vn);
+          orderedList.push(vn);
+        }
+      }
+    }
+    // fallback：完全沒拿到任何憑證 → 至少放當前這張
+    if (orderedList.length === 0) orderedList.push(voucherName);
+    _histImgState.list = orderedList;
+    _histImgState.idx = Math.max(0, orderedList.indexOf(voucherName));
     _histImgState.histId = histId;
   }
   _updateHistImgNav();
@@ -8665,7 +8687,9 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
       const cw = content.clientWidth || 600;
       const ch = content.clientHeight || 500;
       const fitZoom = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
-      _histFitZoom = Math.min(1, Math.max(0.1, fitZoom));
+      // ★ 將預設縮放放大 1.2 倍，讓憑證圖片更顯眼（約 40~45% 區間）
+      //   仍以 1.0 為上限避免低解析度圖片被放大失真
+      _histFitZoom = Math.min(1, Math.max(0.1, fitZoom * 1.2));
       _histZoomLevel = _histFitZoom;
       _histPanX = 0; _histPanY = 0;
       _applyHistTransform();
