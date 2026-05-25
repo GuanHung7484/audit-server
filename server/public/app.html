@@ -7973,7 +7973,7 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
 
   const _fmt = n => (n == null || n === '') ? '<span style="opacity:.4">—</span>' : Number(n).toLocaleString();
 
-  // 品項列 HTML（hover 變淺咖啡色 = rgba(212,162,88,.18)）
+  // 品項列 HTML（hover 變金色 = rgba(212,162,88,.55)）
   const itemsRowsHtml = items.length > 0
     ? items.map((it, i) => {
         const pretax = pretaxList[i];
@@ -7982,12 +7982,12 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
         const sepStyle = i < items.length - 1 ? 'border-bottom:1px solid rgba(244,216,150,.22);' : '';
         return `<tr class="hist-detail-item-row" style="${sepStyle}transition:background .12s">
           <td style="padding:8px 10px;color:#f4d896;text-align:center;font-size:13px">${row.date || ''}</td>
-          <td style="padding:8px 10px;color:#fff;font-weight:600;font-size:13px">${it.name || ''}</td>
+          <td style="padding:8px 10px;color:#fff;font-weight:600;font-size:13px;text-align:center">${it.name || ''}</td>
           <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:center;font-size:13px">${_fmt(it.qty)}</td>
           <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:center;font-size:13px">${_fmt(it.unit_price)}</td>
-          <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:right;font-size:13px">${_fmt(pretax)}</td>
-          <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:right;font-size:13px">${_fmt(tax)}</td>
-          <td style="padding:8px 10px;color:#fbbf24;font-family:monospace;text-align:right;font-weight:700;font-size:14px">${_fmt(total)}</td>
+          <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:center;font-size:13px">${_fmt(pretax)}</td>
+          <td style="padding:8px 10px;color:#fff;font-family:monospace;text-align:center;font-size:13px">${_fmt(tax)}</td>
+          <td style="padding:8px 10px;color:#fbbf24;font-family:monospace;text-align:center;font-weight:700;font-size:14px">${_fmt(total)}</td>
         </tr>`;
       }).join('')
     : `<tr><td colspan="7" style="padding:14px;text-align:center;color:rgba(244,216,150,.55);font-size:13px">— 此憑證無品項資料 —</td></tr>`;
@@ -8009,12 +8009,12 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
         <thead>
           <tr style="border-bottom:1px solid rgba(244,216,150,.35);color:#f4d896;font-weight:700;font-size:12px">
             <th style="padding:8px 10px;text-align:center;width:90px">日期</th>
-            <th style="padding:8px 10px;text-align:left">品名</th>
+            <th style="padding:8px 10px;text-align:center">品名</th>
             <th style="padding:8px 10px;text-align:center;width:70px">數量</th>
             <th style="padding:8px 10px;text-align:center;width:80px">單價</th>
-            <th style="padding:8px 10px;text-align:right;width:95px">未稅</th>
-            <th style="padding:8px 10px;text-align:right;width:80px">營業稅</th>
-            <th style="padding:8px 10px;text-align:right;width:105px">含稅總額</th>
+            <th style="padding:8px 10px;text-align:center;width:95px">未稅</th>
+            <th style="padding:8px 10px;text-align:center;width:80px">營業稅</th>
+            <th style="padding:8px 10px;text-align:center;width:105px">含稅總額</th>
           </tr>
         </thead>
         <tbody>${itemsRowsHtml}</tbody>
