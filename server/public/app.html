@@ -4673,8 +4673,9 @@ function renderReceiptMatchBar(voucherIdx) {
   const worstStatus = allStatuses.reduce((w, s) => (prio2[s] || 0) > (prio2[w] || 0) ? s : w, '');
   const badgeCls = worstStatus === '正確' ? 'ok' : worstStatus === '不正確' ? 'err' : worstStatus === '待確認' ? 'wait' : 'none';
   const badgeLabel = worstStatus === '正確' ? '✓ 正確' : worstStatus === '不正確' ? '✗ 不正確' : worstStatus === '待確認' ? '? 待確認' : '—';
-  // 多 row 的 AI 核對說明合併
-  const reasonsHtml = matched.map(m => _formatAIReason(m.chk.aiReason || '')).filter(Boolean).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${r}</div>`).join('');
+  // 多 row 的 AI 核對說明合併（去重，只留一筆）
+  const _rawReasonsRm = [...new Set(matched.map(m => m.chk.aiReason || '').filter(Boolean))];
+  const reasonsHtml = _rawReasonsRm.slice(0, 1).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${_formatAIReason(r)}</div>`).join('');
 
   // 品名/數量/單價/未稅/營業稅/含稅 每個品項一行
   // ★ 多品項之間以分隔白線區隔（最後一個不加）
@@ -8022,7 +8023,8 @@ function renderHistMatchBar(voucherName, histId, targetEl) {
   const worstSt = matchedRowsWithIdx.reduce((w, {row: r}) => (prioH[r.status || ''] || 0) > (prioH[w] || 0) ? (r.status || '') : w, '');
   const badgeClsH = worstSt === '正確' ? 'ok' : worstSt === '不正確' ? 'err' : worstSt === '待確認' ? 'wait' : 'none';
   const badgeLabelH = worstSt === '正確' ? '✓ 正確' : worstSt === '不正確' ? '✗ 不正確' : worstSt === '待確認' ? '? 待確認' : '— 未匹配';
-  const reasonsH = matchedRowsWithIdx.map(({row: r}) => _formatAIReason(r.aiReason || '')).filter(Boolean).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${r}</div>`).join('');
+  const _rawReasonsH = [...new Set(matchedRowsWithIdx.map(({row: r}) => r.aiReason || '').filter(Boolean))];
+  const reasonsH = _rawReasonsH.slice(0, 1).map(r => `<div style="border-left:2px solid rgba(255,255,255,.15);padding-left:6px;margin-bottom:4px">${_formatAIReason(r)}</div>`).join('');
 
   // ★ 多品項之間以分隔白線區隔（最後一個不加）
   const _sepStyleH = (i, len) => i < len - 1
@@ -8594,8 +8596,18 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
       e.preventDefault();
     });
     content.appendChild(img);
-    _histZoomLevel = 1; _histPanX = 0; _histPanY = 0;
-    document.getElementById('histZoomLabel').textContent = '100%';
+    _histPanX = 0; _histPanY = 0;
+    img.onload = () => {
+      const cw = content.clientWidth || 600;
+      const ch = content.clientHeight || 500;
+      const fitZoom = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+      _histZoomLevel = Math.min(1, Math.max(0.1, fitZoom));
+      _histPanX = 0; _histPanY = 0;
+      _applyHistTransform();
+      const lbl = document.getElementById('histZoomLabel');
+      if (lbl) lbl.textContent = Math.round(_histZoomLevel * 100) + '%';
+    };
+    document.getElementById('histZoomLabel').textContent = '—';
     document.getElementById('histZoomBar').style.display = 'flex';
   }
 
