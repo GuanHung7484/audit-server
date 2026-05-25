@@ -4588,22 +4588,28 @@ function _calcVoucherStats(entry) {
   const vList = (entry && entry.voucherList) || [];
   const vListDedup = Array.from(new Set(vList.filter(Boolean)));
 
-  // ★ vOk/vErr/vWait → 以「明細列數」為基準（與下方詳細表格的列數完全一致）
-  //   舊版用「最壞狀態 / 憑證」會把多列的同一張憑證算成 1 筆，造成徽章數與表格列數不一致
-  let vOk = 0, vErr = 0, vWait = 0;
+  // ★ 全部以「憑證」為單位：每張憑證取最壞狀態，只落入一個桶
+  //   優先級：不正確 > 待確認 > 正確 > 未匹配
+  //   保證 vOk + vErr + vWait + vUnmatched = 憑證總張數
+  const prio = { '不正確': 3, '待確認': 2, '正確': 1 };
+  const voucherWorstStatus = {}; // voucherName → worst status string
   rows.forEach(r => {
     if (!r.voucherName || !r.status) return;
-    if (r.status === '正確')      vOk++;
-    else if (r.status === '不正確') vErr++;
-    else if (r.status === '待確認') vWait++;
+    const cur = voucherWorstStatus[r.voucherName];
+    if (!cur || (prio[r.status] || 0) > (prio[cur] || 0)) {
+      voucherWorstStatus[r.voucherName] = r.status;
+    }
   });
 
-  // ★ vUnmatched → 仍以「憑證」為基準（沒被任何 row 連結的憑證 = 未匹配憑證）
-  //   這個跟下方紅色「未匹配憑證」區塊的列數一致
-  const linkedVouchers = new Set();
-  rows.forEach(r => { if (r.voucherName) linkedVouchers.add(r.voucherName); });
-  let vUnmatched = 0;
-  vListDedup.forEach(vn => { if (!linkedVouchers.has(vn)) vUnmatched++; });
+  let vOk = 0, vErr = 0, vWait = 0, vUnmatched = 0;
+  vListDedup.forEach(vn => {
+    const st = voucherWorstStatus[vn];
+    if      (!st || st === '')       vUnmatched++;
+    else if (st === '正確')          vOk++;
+    else if (st === '不正確')        vErr++;
+    else if (st === '待確認')        vWait++;
+    else                             vUnmatched++;
+  });
 
   return { vOk, vErr, vWait, vUnmatched };
 }
