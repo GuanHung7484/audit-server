@@ -1295,15 +1295,23 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 
 <!-- Topbar -->
 <div class="topbar">
-  <div class="tb-header">
-    <div class="tb-brand">
+  <!-- ★ Grid 三欄：左空 (1fr) | 中標題 (auto) | 右工具列 (1fr 靠右) -->
+  <div class="tb-header" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
+    <div></div>
+    <!-- ★ 品牌標題：置中、點擊可回首頁（核對歷史總覽） -->
+    <div class="tb-brand"
+         onclick="switchToPage('overview')"
+         title="回到首頁（核對歷史）"
+         style="cursor:pointer;text-align:center;transition:opacity .15s"
+         onmouseover="this.style.opacity='.82'"
+         onmouseout="this.style.opacity='1'">
       <div class="tb-brand-icon">📋</div>
       <div>
-        <h1>查帳核對系統網站</h1>
-        <small>明細憑證上傳 ｜ AI 自動匹配 ｜ 人工審核</small>
+        <h1 style="text-align:center">查帳核對系統網站</h1>
+        <small style="text-align:center;display:block">明細憑證上傳 ｜ AI 自動匹配 ｜ 人工審核</small>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-self:end">
       <div class="tb-toolbar">
         <span class="tb-profile-name" id="tbProfileName" onclick="showProfileTip()" title="點擊修改查帳人員姓名"></span>
         <button class="tb-icon-btn" title="個人資料" onclick="showProfileTip()">👤</button>
@@ -4547,26 +4555,23 @@ function _calcVoucherStats(entry) {
   const vList = (entry && entry.voucherList) || [];
   const vListDedup = Array.from(new Set(vList.filter(Boolean)));
 
-  // 每張憑證的最壞狀態（不正確 > 待確認 > 正確）
-  const prio = { '不正確': 3, '待確認': 2, '正確': 1 };
-  const vStatus = new Map();
+  // ★ vOk/vErr/vWait → 以「明細列數」為基準（與下方詳細表格的列數完全一致）
+  //   舊版用「最壞狀態 / 憑證」會把多列的同一張憑證算成 1 筆，造成徽章數與表格列數不一致
+  let vOk = 0, vErr = 0, vWait = 0;
   rows.forEach(r => {
     if (!r.voucherName || !r.status) return;
-    const cur = vStatus.get(r.voucherName);
-    if (!cur || (prio[r.status] || 0) > (prio[cur] || 0)) {
-      vStatus.set(r.voucherName, r.status);
-    }
+    if (r.status === '正確')      vOk++;
+    else if (r.status === '不正確') vErr++;
+    else if (r.status === '待確認') vWait++;
   });
 
-  // 以憑證為基準計數（保證 vOk + vErr + vWait + vUnmatched = 憑證總數）
-  let vOk = 0, vErr = 0, vWait = 0, vUnmatched = 0;
-  vListDedup.forEach(vn => {
-    const s = vStatus.get(vn);
-    if (s === '正確') vOk++;
-    else if (s === '不正確') vErr++;
-    else if (s === '待確認') vWait++;
-    else vUnmatched++;
-  });
+  // ★ vUnmatched → 仍以「憑證」為基準（沒被任何 row 連結的憑證 = 未匹配憑證）
+  //   這個跟下方紅色「未匹配憑證」區塊的列數一致
+  const linkedVouchers = new Set();
+  rows.forEach(r => { if (r.voucherName) linkedVouchers.add(r.voucherName); });
+  let vUnmatched = 0;
+  vListDedup.forEach(vn => { if (!linkedVouchers.has(vn)) vUnmatched++; });
+
   return { vOk, vErr, vWait, vUnmatched };
 }
 
