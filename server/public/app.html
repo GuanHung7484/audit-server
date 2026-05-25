@@ -561,19 +561,19 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 /* Receipt preview modal — draggable floating window */
 .receipt-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1200; }
 .receipt-modal.open { display:block; }
-/* Floating window */
-.rm-window { position:absolute; background:#141428; border-radius:10px; box-shadow:0 24px 80px rgba(0,0,0,.85); display:flex; flex-direction:column; min-width:340px; min-height:260px; overflow:hidden; user-select:none; }
+/* Floating window — 不能用 overflow:hidden，否則四角 resize handle 會被裁掉 */
+.rm-window { position:absolute; background:#141428; border-radius:10px; box-shadow:0 24px 80px rgba(0,0,0,.85); display:flex; flex-direction:column; min-width:340px; min-height:260px; user-select:none; }
 /* Title bar = drag handle */
-.rm-titlebar { display:flex; align-items:center; gap:8px; padding:7px 10px; background:#0a0a1e; cursor:move; flex-shrink:0; border-bottom:1px solid rgba(255,255,255,.1); }
+.rm-titlebar { display:flex; align-items:center; gap:8px; padding:7px 10px; background:#0a0a1e; cursor:move; flex-shrink:0; border-bottom:1px solid rgba(255,255,255,.1); border-radius:10px 10px 0 0; overflow:hidden; }
 .rm-tb-info { display:flex; align-items:center; gap:10px; flex:1; min-width:0; overflow:hidden; }
 /* Image area */
 .rm-img-area { flex:1; overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; min-height:120px; background:#000; }
-/* Corner resize handles */
-.rm-resize { position:absolute; width:18px; height:18px; z-index:20; }
-.rm-resize.nw { top:0; left:0; cursor:nw-resize; border-top:3px solid rgba(255,255,255,.5); border-left:3px solid rgba(255,255,255,.5); border-radius:10px 0 0 0; }
-.rm-resize.ne { top:0; right:0; cursor:ne-resize; border-top:3px solid rgba(255,255,255,.5); border-right:3px solid rgba(255,255,255,.5); border-radius:0 10px 0 0; }
-.rm-resize.sw { bottom:0; left:0; cursor:sw-resize; border-bottom:3px solid rgba(255,255,255,.5); border-left:3px solid rgba(255,255,255,.5); border-radius:0 0 0 10px; }
-.rm-resize.se { bottom:0; right:0; cursor:se-resize; border-bottom:3px solid rgba(255,255,255,.5); border-right:3px solid rgba(255,255,255,.5); border-radius:0 0 10px 0; }
+/* Corner resize handles — 在 rm-window 外層（用 position:absolute + z-index） */
+.rm-resize { position:absolute; width:22px; height:22px; z-index:30; }
+.rm-resize.nw { top:-2px; left:-2px; cursor:nw-resize; border-top:4px solid #4a9fd4; border-left:4px solid #4a9fd4; border-radius:10px 0 0 0; }
+.rm-resize.ne { top:-2px; right:-2px; cursor:ne-resize; border-top:4px solid #4a9fd4; border-right:4px solid #4a9fd4; border-radius:0 10px 0 0; }
+.rm-resize.sw { bottom:-2px; left:-2px; cursor:sw-resize; border-bottom:4px solid #4a9fd4; border-left:4px solid #4a9fd4; border-radius:0 0 0 10px; }
+.rm-resize.se { bottom:-2px; right:-2px; cursor:se-resize; border-bottom:4px solid #4a9fd4; border-right:4px solid #4a9fd4; border-radius:0 0 10px 0; }
 /* Image */
 .receipt-modal-img { max-width:100%; max-height:100%; border-radius:4px; transform-origin:center center; transition:transform .12s; box-shadow:0 4px 20px rgba(0,0,0,.5); display:block; }
 /* Titlebar elements */
