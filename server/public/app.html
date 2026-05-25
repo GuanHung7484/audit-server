@@ -2019,20 +2019,20 @@ function renderOverviewPage() {
   const elUploads = document.getElementById('ovStatUploads');
   if (elUploads) elUploads.textContent = list.length.toString();
 
-  // 2) 平均匹配率：以「憑證張數」為基準（查帳同仁回饋：核對基礎應為憑證總張數）
-  //    acc = ∑ vOk / ∑ voucherCount（包含未匹配憑證）
-  let totalOk = 0, totalVouchers = 0;
+  // 2) 平均匹配率：以「明細表格實際列數」為基準（與下方紀錄列的精準率公式一致）
+  //    acc = ∑ vOk / ∑ (vOk + vErr + vWait + vUnmatched)
+  let totalOk = 0, totalItems = 0;
   list.forEach(e => {
     const stats = _calcVoucherStats(e);
     totalOk += stats.vOk;
-    totalVouchers += (e.voucherCount || (stats.vOk + stats.vErr + stats.vWait + stats.vUnmatched));
+    totalItems += (stats.vOk + stats.vErr + stats.vWait + stats.vUnmatched);
   });
-  const acc = totalVouchers > 0 ? (totalOk / totalVouchers * 100) : 0;
+  const acc = totalItems > 0 ? (totalOk / totalItems * 100) : 0;
   const elAcc = document.getElementById('ovStatAccuracy');
-  if (elAcc) elAcc.textContent = totalVouchers > 0 ? acc.toFixed(1) + '%' : '—';
+  if (elAcc) elAcc.textContent = totalItems > 0 ? acc.toFixed(1) + '%' : '—';
   // 同步更新進度條寬度
   const elAccBar = document.getElementById('ovStatAccBar');
-  if (elAccBar) elAccBar.style.width = (totalVouchers > 0 ? acc.toFixed(1) : 0) + '%';
+  if (elAccBar) elAccBar.style.width = (totalItems > 0 ? acc.toFixed(1) : 0) + '%';
 
   // 3) 歷史紀錄列表（套用搜尋關鍵字過濾）
   _renderOvHistFiltered();
@@ -2203,12 +2203,12 @@ function _renderOvHistFiltered() {
 
   const rowsHTML = pagedList.map(entry => {
     const { id, auditDate, auditor, excelFile, voucherCount, results, clientName, auditMonth } = entry;
-    // ★ 以「憑證張數」為基準計算（查帳同仁回饋：核對基礎應為憑證的總張數）
-    //   精準率 = 匹配成功 / 憑證總張數（包含未匹配，確保比例真實反映品質）
+    // ★ 以「明細表格實際列數」為基準計算（與下方明細的徽章數字完全一致）
+    //   精準率 = 匹配成功列數 / 全部明細列數總和（含未匹配）
     const stats = _calcVoucherStats(entry);
     const ok = stats.vOk, err = stats.vErr, wait = stats.vWait, unmatched = stats.vUnmatched;
-    const totalV = voucherCount || (ok + err + wait + unmatched);
-    const acc = totalV > 0 ? (ok / totalV * 100) : 0;
+    const totalAll = ok + err + wait + unmatched;
+    const acc = totalAll > 0 ? (ok / totalAll * 100) : 0;
     const displayClient = clientName || _detectClientName(excelFile) || '—';
     const auditMonthDisp = auditMonth || _inferAuditMonth(entry.rows);
     const monthBadge = auditMonthDisp
