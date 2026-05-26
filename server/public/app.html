@@ -7902,6 +7902,11 @@ function renderHistoryList() {
         if (v === '') return '';
         return `<span style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;padding:1px 3px;border-radius:3px;display:inline-block" onclick="event.stopPropagation();editHistRowField(${id},${oIdx},'excelRow',this)" title="點擊修改 Excel 行號">#${v}</span>`;
       }).filter(Boolean).join(', ');
+      // 給 tooltip 用的純文字版本（不能有 HTML 標籤，否則會把 title 屬性截斷）
+      const rowNumPlain = group.map(({ r }) => {
+        const v = r.excelRow !== undefined ? r.excelRow : (r.idx !== undefined ? r.idx + 1 : '');
+        return v !== '' ? `#${v}` : '';
+      }).filter(Boolean).join(', ');
 
       // 月份 / 日期：多筆用 <br> 分隔（去重）
       const sheetsStr = Array.from(new Set(group.map(({ r }) => r.sheet || ''))).filter(Boolean).join('<br>');
@@ -7956,8 +7961,8 @@ function renderHistoryList() {
       const voucherCell = `<button class="hist-eye-btn" style="background:#ebf8ff;border:1px solid #bee3f8;border-radius:6px;padding:4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px;color:#2b6cb0;font-weight:700;"
         onclick="event.stopPropagation();showHistVoucherImg(event,'${vName.replace(/'/g,"\\'")}',${id})" title="${vName}">👁 查看</button>`;
 
-      // 多筆 Excel 列的提示（hover title）
-      const titleHint = group.length > 1 ? `（此憑證對應 ${group.length} 筆 Excel 明細：${rowNumStr}）` : '';
+      // 多筆 Excel 列的提示（hover title）— 用純文字版避免 HTML 標籤洩漏到屬性內
+      const titleHint = group.length > 1 ? `（此憑證對應 ${group.length} 筆 Excel 明細：${rowNumPlain}）` : '';
 
       return `<tr class="${cls} hr-clickable" onclick="toggleHistRowDetail(${id},${firstIdx},this)" title="點擊展開明細${titleHint}">
         <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;white-space:nowrap" title="Excel 對應列號${titleHint}">${rowNumStr}</td>
