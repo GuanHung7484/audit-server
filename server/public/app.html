@@ -8055,7 +8055,7 @@ function renderHistoryList() {
           <thead><tr><th>#</th><th>月份</th><th>日期</th><th>品名</th><th style="text-align:center">統編</th><th style="text-align:center">未稅金額</th><th style="text-align:center">營業稅</th><th style="text-align:center">含稅總額</th><th>結果</th><th style="padding-right:38px">AI核對說明</th><th>憑證</th></tr></thead>
           <tbody>${rowsHtml}${unmatchedRowsHtml}</tbody>
         </table>
-        ${unmatchedVouchers.length > 0 ? `<div style="padding:8px 14px;background:#fff5f5;border-top:1px solid #feb2b2;font-size:14px;color:#c53030;font-weight:700">⚠ 共 ${unmatchedVouchers.length} 張未匹配憑證（顯示於上方紅色列），請人工檢視是否需要連結到某筆支出明細</div>` : ''}
+        ${unmatchedVouchers.length > 0 ? `<div style="padding:8px 14px;background:#fff5f5;border-top:1px solid #feb2b2;font-size:14px;color:#c53030;font-weight:700;text-align:center">⚠ 共 ${unmatchedVouchers.length} 張未匹配憑證（顯示於上方紅色列），請人工檢視是否需要連結到某筆支出明細</div>` : ''}
         ${voucherSection}
       </div>
     </div>`;
