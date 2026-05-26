@@ -7965,7 +7965,7 @@ function renderHistoryList() {
       const titleHint = group.length > 1 ? `（此憑證對應 ${group.length} 筆 Excel 明細：${rowNumPlain}）` : '';
 
       return `<tr class="${cls} hr-clickable" onclick="toggleHistRowDetail(${id},${firstIdx},this)" title="點擊展開明細${titleHint}">
-        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;white-space:nowrap" title="Excel 對應列號${titleHint}">${rowNumStr}</td>
+        <td style="color:#5b2c0c;font-size:13px;cursor:pointer;font-weight:700;white-space:nowrap" title="Excel 對應列號${titleHint}"><span class="hist-row-arrow" style="display:inline-block;width:14px;color:#8a6e4a;font-size:11px;margin-right:4px;user-select:none;transition:transform .15s">▲</span>${rowNumStr}</td>
         <td>${sheetsStr}</td>
         <td style="white-space:nowrap;cursor:pointer" title="點擊修改日期" onclick="event.stopPropagation();editHistRowField(${id},${firstIdx},'date',this)">${datesStr}</td>
         <td style="font-weight:700;max-width:200px;line-height:1.45;font-size:13px" title="Excel 主項目：${firstR.mainItem||''}">${productName}</td>
@@ -8090,6 +8090,9 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
   if (next && next.classList.contains('hist-row-detail') &&
       next.getAttribute('data-detail-for') === String(rowIdx)) {
     next.remove();
+    // 收合：箭頭改回 ▲
+    const arrowSelf = tr.querySelector('.hist-row-arrow');
+    if (arrowSelf) arrowSelf.textContent = '▲';
     return;
   }
 
@@ -8097,7 +8100,12 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
   const table = tr.closest('table');
   if (table) {
     table.querySelectorAll('tr.hist-row-detail').forEach(d => d.remove());
+    // 把所有箭頭重設為 ▲（其他列收合）
+    table.querySelectorAll('.hist-row-arrow').forEach(a => { a.textContent = '▲'; });
   }
+  // 自己的箭頭改為 ▼（展開）
+  const arrowSelfOpen = tr.querySelector('.hist-row-arrow');
+  if (arrowSelfOpen) arrowSelfOpen.textContent = '▼';
 
   // 取資料
   const history = loadHistory();
