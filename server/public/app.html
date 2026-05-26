@@ -729,11 +729,13 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-img-box {
   background:#1a202c; border-radius:12px; padding:12px;
   width:680px; max-width:96vw;
+  height:78vh; /* ★ 預設高度固定 → 不會因圖片高瘦而把按鈕擠出畫面 */
   display:flex; flex-direction:column; gap:6px;
   box-shadow:0 12px 48px rgba(0,0,0,.55), 0 0 0 1px rgba(212,162,88,.4);
   position:fixed; top:80px; left:calc(50% - 340px);
   pointer-events:auto;  /* 視窗本身可互動 */
   min-width:420px; min-height:360px;
+  max-height:calc(100vh - 60px); /* ★ 永遠不超過畫面，保證底部按鈕看得到 */
 }
 /* ── 歷史頁憑證視窗 — 四角縮放把手（明顯藍色方塊） ── */
 .hist-resize {
@@ -816,8 +818,8 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-cloud-badge.syncing { background:#1e40af; color:#fff; border:1px solid #1e3a8a; }
 .hist-cloud-badge.ok      { background:#15803d; color:#fff; border:1px solid #14532d; font-weight:800; }
 .hist-cloud-badge.err     { background:#991b1b; color:#fff; border:1px solid #7f1d1d; }
-/* 圖片 max-width 改為 100% → 配合縮小後的浮動視窗，避免圖片溢出 */
-.hist-img-box img { max-width:100%; display:block; border-radius:6px; transition:transform .2s; transform-origin:top center; }
+/* 圖片 max-width/max-height 都 100% → 高瘦圖片（如郵局收據）會自動 contain 在容器內 */
+.hist-img-box img { max-width:100%; max-height:100%; display:block; border-radius:6px; transition:transform .2s; transform-origin:top center; }
 .hist-img-close { align-self:flex-end; background:rgba(255,255,255,.15); border:none; color:#fff; border-radius:6px; padding:6px 16px; cursor:pointer; font-size:14px; font-family:inherit; }
 .hist-img-close:hover { background:rgba(255,255,255,.28); }
 .hist-img-nodata { color:#a0aec0; font-size:13px; text-align:center; padding:40px 20px; }
@@ -1927,7 +1929,7 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
       <div class="hist-match-bar-title">📋 對應支出明細 AI 核對結果</div>
       <div id="histMatchContent"><div class="hist-no-match">此憑證尚無對應支出明細</div></div>
     </div>
-    <div style="color:rgba(255,255,255,.4);font-size:11px;text-align:center;margin-top:-2px">← → 切換憑證　　滾輪 / + - 縮放　　拖曳標題列移動　　四角可縮放視窗　　Esc 關閉</div>
+    <div style="color:rgba(255,255,255,.4);font-size:11px;text-align:center;margin-top:-2px">← → 切換憑證　　滾輪 / + - 縮放　　拖曳視窗任意空白處移動　　四角可縮放視窗　　Esc 關閉</div>
     <!-- ★ 四角縮放把手 -->
     <div class="hist-resize nw" onmousedown="histBoxResizeStart(event,'nw')"></div>
     <div class="hist-resize ne" onmousedown="histBoxResizeStart(event,'ne')"></div>
@@ -9139,7 +9141,7 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
 
 let _histZoomLevel = 1;       // ★ 內部實際縮放（傳給 transform: scale）
 let _histFitZoom = 1;          // ★ 載入時計算的「整張剛好顯示」縮放（= 顯示 100%）
-// ★ 重設浮動視窗位置與大小（恢復 CSS 預設）
+// ★ 重設浮動視窗位置與大小（恢復 CSS 預設，並依視窗大小重新置中）
 function _resetHistImgBox() {
   const box = document.getElementById('histImgBox');
   if (!box) return;
@@ -9152,6 +9154,14 @@ function _resetHistImgBox() {
   box.style.height = '';
   box.style.maxWidth = '';
   box.style.maxHeight = '';
+  // 等下一次重繪後，依實際 box 尺寸自動置中（避免 CSS 硬編碼位置在小視窗時偏移）
+  requestAnimationFrame(() => {
+    const rect = box.getBoundingClientRect();
+    const newLeft = Math.max(10, (window.innerWidth  - rect.width)  / 2);
+    const newTop  = Math.max(20, (window.innerHeight - rect.height) / 2);
+    box.style.left = newLeft + 'px';
+    box.style.top  = newTop  + 'px';
+  });
 }
 // 顯示百分比邏輯：100% = _histFitZoom；200% = _histFitZoom × 2；以此類推
 function histImgZoomChange(dir) {
