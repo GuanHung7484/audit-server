@@ -8995,6 +8995,8 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
   // ★ 查看 = 只顯示憑證圖片；對應支出明細的核對結果改由「點 # 欄位下拉」呈現
   const matchBar = document.getElementById('histMatchBar');
   if (matchBar) matchBar.style.display = 'none';
+  // ★ 每次開啟憑證 → 視窗回到初始位置與大小（避免上次拖曳卡在邊緣）
+  if (typeof _resetHistImgBox === 'function') _resetHistImgBox();
   // ★ 啟用浮動視窗拖曳（只綁定一次）
   if (typeof _enableHistImgBoxDrag === 'function') _enableHistImgBoxDrag();
 
@@ -9137,9 +9139,35 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
 
 let _histZoomLevel = 1;       // ★ 內部實際縮放（傳給 transform: scale）
 let _histFitZoom = 1;          // ★ 載入時計算的「整張剛好顯示」縮放（= 顯示 100%）
+// ★ 重設浮動視窗位置與大小（恢復 CSS 預設）
+function _resetHistImgBox() {
+  const box = document.getElementById('histImgBox');
+  if (!box) return;
+  // 清除拖曳/resize 過程套用的 inline style，回到 CSS 預設
+  box.style.left = '';
+  box.style.top = '';
+  box.style.right = '';
+  box.style.bottom = '';
+  box.style.width = '';
+  box.style.height = '';
+  box.style.maxWidth = '';
+  box.style.maxHeight = '';
+}
 // 顯示百分比邏輯：100% = _histFitZoom；200% = _histFitZoom × 2；以此類推
 function histImgZoomChange(dir) {
   if (dir === 0) {
+    // ★ 重設：視窗位置與大小先回到預設，然後重新計算 fit zoom
+    _resetHistImgBox();
+    // 重新計算 fit zoom（因為視窗大小可能已恢復）
+    const img = document.getElementById('histZoomImg');
+    const content = document.getElementById('histImgContent');
+    if (img && img.naturalWidth && content) {
+      // 強制重排，取得新的容器尺寸
+      const cw = content.clientWidth || 600;
+      const ch = content.clientHeight || 500;
+      const fit = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+      _histFitZoom = Math.max(0.05, Math.min(3, fit));
+    }
     _histZoomLevel = _histFitZoom || 1;  // 重設 = 回到「整張剛好顯示」= 100%
     _histPanX = 0; _histPanY = 0;
   } else {
@@ -9178,26 +9206,41 @@ function _applyHistTransform() {
 let _histImgDragBound = false;
 function _enableHistImgBoxDrag() {
   if (_histImgDragBound) return;
-  const box = document.querySelector('#histImgOverlay .hist-img-box');
-  const title = document.getElementById('histImgTitle');
-  if (!box || !title) return;
+  const box = document.getElementById('histImgBox');
+  if (!box) return;
   _histImgDragBound = true;
   let dragging = false;
   let startX = 0, startY = 0, startLeft = 0, startTop = 0;
-  title.addEventListener('mousedown', (e) => {
+
+  // ★ 判斷某元素是否「不可拖曳」（互動元素：按鈕、輸入框、圖片、四角縮放把手等）
+  function _isInteractive(el) {
+    if (!el || el === box) return false;
+    // 互動元素本身
+    if (el.matches && el.matches('button, input, select, textarea, a, img, .hist-resize, .hist-eye-btn')) return true;
+    // 圖片區的拖曳是由圖片自己處理（pan）→ 視為互動，不該觸發視窗拖曳
+    if (el.id === 'histImgContent' || (el.closest && el.closest('#histImgContent'))) return true;
+    // 縮放列、計數器、明細列、底部提示 → 不觸發視窗拖曳，但其本身按鈕點擊照樣有效
+    // 其餘往上找
+    if (el.closest && (el.closest('button') || el.closest('input') || el.closest('a'))) return true;
+    return false;
+  }
+
+  // ★ 拖曳監聽改為整個 box（標題列、空白區、底部提示文字等都能抓）
+  box.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
+    if (_isInteractive(e.target)) return;  // 按鈕/輸入/圖片區/resize 把手 → 不拖曳
     dragging = true;
     const rect = box.getBoundingClientRect();
     startX = e.clientX;
     startY = e.clientY;
     startLeft = rect.left;
     startTop  = rect.top;
-    // 把 box 切換成「絕對座標」拖曳模式
+    // 切換成絕對座標 + 清掉 max 限制
     box.style.left = startLeft + 'px';
     box.style.top  = startTop  + 'px';
     box.style.right = 'auto';
     box.style.bottom = 'auto';
-    title.style.cursor = 'grabbing';
+    document.body.style.cursor = 'grabbing';
     e.preventDefault();
   });
   document.addEventListener('mousemove', (e) => {
@@ -9216,7 +9259,7 @@ function _enableHistImgBoxDrag() {
   document.addEventListener('mouseup', () => {
     if (!dragging) return;
     dragging = false;
-    title.style.cursor = 'move';
+    document.body.style.cursor = '';
   });
 }
 
