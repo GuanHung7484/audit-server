@@ -5467,9 +5467,23 @@ async function runAutoVerifyOn(ctx) {
   if (_rateLimitHit > 0) console.warn(`[Pass1] 共觸發 ${_rateLimitHit} 次 API 速率限制（已自動重試）`);
 
   const scannedList = scanned.filter(Boolean);
-  console.log(`[Pass1] 成功 ${scannedList.filter(s=>s.inv).length}/${scannedList.length} 張`);
+  const _passSuccess = scannedList.filter(s=>s.inv).length;
+  console.log(`[Pass1] 成功 ${_passSuccess}/${scannedList.length} 張`);
   scannedList.filter(s=>s.inv).forEach(({vi,inv}) =>
     console.log(`  [${vi}]${vouchers[vi].name}`, JSON.stringify({doc_type:inv.doc_type, date:inv.date, total:inv.total_amount, pretax:inv.pretax_amount})));
+
+  // ★ 防呆：若 Pass 1 對「所有圖片憑證」都失敗 → 中止審核並警告，不要存空白紀錄
+  const _imageVoucherCount = vouchers.filter(v => v.type !== 'pdf').length;
+  if (_imageVoucherCount > 0 && _passSuccess === 0) {
+    showAuditProgress(false);
+    const rateMsg = _rateLimitHit > 0 ? `（其中 ${_rateLimitHit} 次觸發 API 速率限制）` : '';
+    alert(`❌ AI 辨識全部失敗（${scannedList.length} 張憑證都無法讀取）${rateMsg}\n\n可能原因：\n• AI 伺服器暫時無回應\n• API 配額用完\n• 網路連線異常\n\n請稍後再試一次。本次不會儲存任何歷史紀錄。`);
+    ctx.auditing = false;
+    if (ctx === __activeSession()) {
+      try { renderVerifyStats(); renderTable(); renderVoucherGallery(); renderStats(); } catch(_){}
+    }
+    return;
+  }
 
   // ══ Pass 2：一張憑證配對多筆 Excel（日期 → 品項 → 金額加總驗證）══
   const validScanned = scannedList.filter(s => s.inv);
