@@ -8012,7 +8012,7 @@ function renderHistoryList() {
     // 憑證縮圖區（在展開的 detail 底部）
     const voucherSection = vList.length > 0 ? `
       <div style="padding:10px 14px;border-top:1px solid #e2e8f0;background:#f7fafc;">
-        <div style="font-size:12px;font-weight:700;color:#4a5568;margin-bottom:8px;">📎 本次憑證（${vList.length} 張）— 點 👁 查看圖片</div>
+        <div style="font-size:14px;font-weight:700;color:#4a5568;margin-bottom:8px;">📎 本次憑證（${vList.length} 張）— 點 👁 查看圖片</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
           ${vList.map(vn => `
             <button class="hist-eye-btn" style="background:#ebf8ff;border:1px solid #bee3f8;border-radius:6px;padding:4px 10px;font-size:12px;display:flex;align-items:center;gap:4px;"
@@ -8055,7 +8055,7 @@ function renderHistoryList() {
           <thead><tr><th>#</th><th>月份</th><th>日期</th><th>品名</th><th style="text-align:center">統編</th><th style="text-align:center">未稅金額</th><th style="text-align:center">營業稅</th><th style="text-align:center">含稅總額</th><th>結果</th><th style="padding-right:38px">AI核對說明</th><th>憑證</th></tr></thead>
           <tbody>${rowsHtml}${unmatchedRowsHtml}</tbody>
         </table>
-        ${unmatchedVouchers.length > 0 ? `<div style="padding:8px 14px;background:#fff5f5;border-top:1px solid #feb2b2;font-size:12px;color:#c53030;font-weight:700">⚠ 共 ${unmatchedVouchers.length} 張未匹配憑證（顯示於上方紅色列），請人工檢視是否需要連結到某筆支出明細</div>` : ''}
+        ${unmatchedVouchers.length > 0 ? `<div style="padding:8px 14px;background:#fff5f5;border-top:1px solid #feb2b2;font-size:14px;color:#c53030;font-weight:700">⚠ 共 ${unmatchedVouchers.length} 張未匹配憑證（顯示於上方紅色列），請人工檢視是否需要連結到某筆支出明細</div>` : ''}
         ${voucherSection}
       </div>
     </div>`;
