@@ -763,9 +763,12 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-resize.ne::before { content:'⤢'; }
 .hist-resize.sw::before { content:'⤢'; transform:rotate(180deg); }
 .hist-resize.se::before { content:'⤡'; transform:rotate(180deg); }
-/* 標題列當作拖曳把手 */
-.hist-img-title { color:#fff; font-size:14px; font-weight:700; text-align:center; cursor:move; user-select:none; padding:4px 0; background:rgba(212,162,88,.12); border-radius:6px; }
-.hist-img-title::before { content:"⠿ "; color:rgba(244,216,150,.6); font-size:13px; }
+/* 標題列當作拖曳把手 — 改為 flex，左邊檔名、右邊關閉按鈕 */
+.hist-img-title { display:flex; align-items:center; gap:8px; cursor:move; user-select:none; padding:6px 10px; background:rgba(212,162,88,.18); border-radius:8px; flex-shrink:0; }
+.hist-img-title-icon { color:rgba(244,216,150,.6); font-size:13px; flex-shrink:0; }
+.hist-img-title-name { color:#fff; font-size:14px; font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hist-img-title-close { background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.3); color:#fff; width:30px; height:30px; border-radius:50%; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .15s, transform .1s; font-family:inherit; }
+.hist-img-title-close:hover { background:rgba(239,68,68,.75); transform:scale(1.1); }
 /* ★ flex:1 讓圖片預覽區用滿剩餘空間 */
 #histImgContent { overflow:auto; flex:1 1 auto; min-height:200px; display:flex; align-items:flex-start; justify-content:center; }
 /* 歷史圖片底部明細欄 */
@@ -1897,8 +1900,9 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 <div class="hist-img-overlay" id="histImgOverlay" onclick="if(event.target===this)closeHistImg()">
   <div class="hist-img-box" id="histImgBox">
     <div class="hist-img-title" id="histImgTitle">
-      <span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:.5px;margin-right:6px">v2026-05-25</span>
-      憑證圖片
+      <span class="hist-img-title-icon">⠿</span>
+      <span class="hist-img-title-name" id="histImgTitleText">憑證圖片</span>
+      <button class="hist-img-title-close" onclick="closeHistImg();event.stopPropagation()" title="關閉 (Esc)">✕</button>
     </div>
     <div id="histImgContent" onwheel="if(document.getElementById('histZoomImg')){event.preventDefault();histImgZoomChange(event.deltaY<0?1:-1);}"></div>
     <div class="hist-zoom-bar" id="histZoomBar" style="display:none">
@@ -1924,7 +1928,6 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
       <div id="histMatchContent"><div class="hist-no-match">此憑證尚無對應支出明細</div></div>
     </div>
     <div style="color:rgba(255,255,255,.4);font-size:11px;text-align:center;margin-top:-2px">← → 切換憑證　　滾輪 / + - 縮放　　拖曳標題列移動　　四角可縮放視窗　　Esc 關閉</div>
-    <button class="hist-img-close" onclick="closeHistImg()">✕ 關閉</button>
     <!-- ★ 四角縮放把手 -->
     <div class="hist-resize nw" onmousedown="histBoxResizeStart(event,'nw')"></div>
     <div class="hist-resize ne" onmousedown="histBoxResizeStart(event,'ne')"></div>
@@ -9014,7 +9017,10 @@ async function showHistVoucherImg(event, voucherName, histId, keepState) {
   }
   _updateHistImgNav();
 
-  title.textContent = voucherName;
+  // 只更新檔名 span，不覆蓋右側關閉按鈕
+  const titleText = document.getElementById('histImgTitleText');
+  if (titleText) titleText.textContent = voucherName;
+  else title.textContent = voucherName;
   content.innerHTML = '<div class="hist-img-nodata">⏳ 載入中...</div>';
   overlay.classList.add('open');
 
