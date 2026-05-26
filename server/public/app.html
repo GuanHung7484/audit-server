@@ -9168,14 +9168,19 @@ function histImgZoomChange(dir) {
   if (dir === 0) {
     // ★ 重設：視窗位置與大小先回到預設，然後重新計算 fit zoom
     _resetHistImgBox();
-    // 重新計算 fit zoom（因為視窗大小可能已恢復）
     const img = document.getElementById('histZoomImg');
     const content = document.getElementById('histImgContent');
-    if (img && img.naturalWidth && content) {
+    if (img && content) {
+      // ★ 先把 transform 清掉，才能讀到圖片「實際渲染尺寸」（CSS max-width/height 約束後）
+      img.style.transform = '';
       // 強制重排，取得新的容器尺寸
       const cw = content.clientWidth || 600;
       const ch = content.clientHeight || 500;
-      const fit = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+      // ★ 用 offsetWidth/Height（CSS 約束後的渲染尺寸），不能用 naturalWidth/Height（原始尺寸）
+      //    否則重設時會把已 CSS 縮小的圖片再 scale 一次 → 變超小
+      const renderW = img.offsetWidth  || img.naturalWidth  || 1;
+      const renderH = img.offsetHeight || img.naturalHeight || 1;
+      const fit = Math.min(cw / renderW, ch / renderH);
       _histFitZoom = Math.max(0.05, Math.min(3, fit));
     }
     _histZoomLevel = _histFitZoom || 1;  // 重設 = 回到「整張剛好顯示」= 100%
