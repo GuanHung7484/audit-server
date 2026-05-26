@@ -7896,10 +7896,11 @@ function renderHistoryList() {
       const firstR = group[0].r;
       const firstIdx = group[0].originalIdx;
 
-      // # 欄：合併所有對應的 Excel 列號（例：#29, #30）
-      const rowNumStr = group.map(({ r }) => {
+      // # 欄：合併所有對應的 Excel 列號（例：#29, #30）—— 每個都可獨立點選編輯
+      const rowNumStr = group.map(({ r, originalIdx: oIdx }) => {
         const v = r.excelRow !== undefined ? r.excelRow : (r.idx !== undefined ? r.idx + 1 : '');
-        return v !== '' ? `#${v}` : '';
+        if (v === '') return '';
+        return `<span style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;padding:1px 3px;border-radius:3px;display:inline-block" onclick="event.stopPropagation();editHistRowField(${id},${oIdx},'excelRow',this)" title="點擊修改 Excel 行號">#${v}</span>`;
       }).filter(Boolean).join(', ');
 
       // 月份 / 日期：多筆用 <br> 分隔（去重）
