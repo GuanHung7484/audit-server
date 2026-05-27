@@ -677,13 +677,19 @@ tr.row-not { } tr.row-auto td:first-child { border-left: 3px solid #059669; } tr
 .hist-rec-auditor { font-size:15px; color:#2b6cb0; font-weight:700; white-space:nowrap; }
 .hist-rec-file { font-size:16px; font-weight:700; color:#2d3748; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .hist-rec-badges { display:flex; gap:4px; flex-shrink:0; }
-.hbadge { padding:7px 16px; border-radius:10px; font-size:16px; font-weight:800; white-space:nowrap; display:inline-flex; flex-direction:column; align-items:center; line-height:1.2; min-width:70px; }
+.hbadge { padding:7px 16px; border-radius:10px; font-size:16px; font-weight:800; white-space:nowrap; display:inline-flex; flex-direction:column; align-items:center; line-height:1.2; min-width:70px; transition:background .15s, transform .12s, box-shadow .15s; }
 .hbadge .hb-label { font-size:12px; font-weight:600; opacity:.75; margin-bottom:2px; letter-spacing:.3px; }
 .hbadge .hb-num { font-size:17px; font-weight:900; }
 .hb-ok { background:#c6efce; color:#276221; border:1px solid #95d5b0; }
 .hb-err { background:#ffc7ce; color:#9c0006; border:1px solid #f3a4ad; }
 .hb-wait { background:#ffeb9c; color:#7d5a00; border:1px solid #e6c95a; }
 .hbadge.hb-none { background:#800020; color:#fff; border:1px solid #5e0017; font-weight:800; }
+/* ★ hover：底色加深 + 微微上浮 + 陰影，提示可點擊 */
+.hbadge { cursor:pointer; }
+.hb-ok:hover   { background:#8fe0a8; border-color:#5cbf82; transform:translateY(-2px); box-shadow:0 4px 12px rgba(39,98,33,.35); }
+.hb-err:hover  { background:#ff9aa8; border-color:#ef7585; transform:translateY(-2px); box-shadow:0 4px 12px rgba(156,0,6,.35); }
+.hb-wait:hover { background:#ffdb5c; border-color:#d4af2e; transform:translateY(-2px); box-shadow:0 4px 12px rgba(125,90,0,.35); }
+.hbadge.hb-none:hover { background:#a30028; border-color:#800020; transform:translateY(-2px); box-shadow:0 4px 12px rgba(128,0,32,.5); }
 .hist-rec-badges { display:inline-flex; gap:6px; align-items:center; }
 .hist-rec-del { background:none; border:none; color:#e53e3e; cursor:pointer; font-size:19px; padding:0 6px; opacity:.45; flex-shrink:0; }
 .hist-rec-del:hover { opacity:1; }
