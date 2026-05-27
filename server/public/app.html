@@ -4852,7 +4852,7 @@ function renderReceiptMatchBar(voucherIdx) {
   const pretaxList = itemsRm.map(it => it.amount != null ? Number(it.amount) : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null));
   const pretaxsHtml = pretaxList.map((p, i) => `<div style="${_sepStyle(i, pretaxList.length)}">${_fmtN(p)}</div>`).join('');
   const taxsHtml = pretaxList.map((p, i) => `<div style="${_sepStyle(i, pretaxList.length)}">${_fmtN(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
-  const totalsHtml = pretaxList.map((p, i) => `<div style="${_sepStyle(i, pretaxList.length)}">${_fmtN(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
+  const totalsHtml = pretaxList.map((p, i) => `<div style="${_sepStyle(i, pretaxList.length)}">${_fmtN(p != null ? Math.round(p + Math.round(p * 0.05)) : null)}</div>`).join('');  // ★ 含稅總額取整
 
   // 表頭：# | 日期 | 統編 | 品名 | 數量 | 單價 | 未稅 | 營業稅 | 含稅總額 | 結果 | AI 核對說明
   const headerHtml = `<div class="rm-match-head">
@@ -4887,7 +4887,7 @@ function renderReceiptMatchBar(voucherIdx) {
   // 合計：未稅、營業稅、含稅總額（= 收據總額）
   const sumPretax = pretaxList.reduce((s, p) => s + (p || 0), 0);
   const sumTax = Math.round(sumPretax * 0.05);
-  const sumTotal = sumPretax + sumTax;  // ★ 多筆品項含稅總額加總 = 收據總額
+  const sumTotal = Math.round(sumPretax + sumTax);  // ★ 收據總額取整（含稅總額不顯示小數）
   const receiptTotal = sumTotal;        // alias 方便閱讀
   // ★ 用相同 grid template，把合計列右對齊到「含稅總額」欄位下方
   //   grid-column:1/10 = 從第 1 條 grid line 跨到第 10 條，剛好覆蓋 # ~ 含稅總額（9 欄）
@@ -8172,7 +8172,7 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
                                   : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null));
   const sumPretax = pretaxList.reduce((s, p) => s + (p || 0), 0);
   const sumTax = Math.round(sumPretax * 0.05);
-  const receiptTotal = sumPretax + sumTax;  // 收據總額 = 多筆品項含稅總額加總
+  const receiptTotal = Math.round(sumPretax + sumTax);  // ★ 收據總額取整（含稅總額不顯示小數）
   const voucherTotal = row.voucherTotal != null ? Number(row.voucherTotal) : receiptTotal;
   const excelSum = matched.reduce((s, r) => s + (r.amount || 0), 0);
   const diff = voucherTotal - excelSum;
@@ -8185,7 +8185,7 @@ function toggleHistRowDetail(histId, rowIdx, tdEl) {
     ? items.map((it, i) => {
         const pretax = pretaxList[i];
         const tax = pretax != null ? Math.round(pretax * 0.05) : null;
-        const total = pretax != null ? pretax + tax : null;
+        const total = pretax != null ? Math.round(pretax + tax) : null;  // ★ 含稅總額取整，不顯示小數
         const sepStyle = i < items.length - 1 ? 'border-bottom:1px solid rgba(244,216,150,.22);' : '';
         return `<tr class="hist-detail-item-row" style="${sepStyle}transition:background .12s">
           <td style="padding:8px 10px;color:#f4d896;text-align:center;font-size:13px">${row.date || ''}</td>
@@ -8501,7 +8501,7 @@ function renderHistMatchBar(voucherName, histId, targetEl) {
   const pretaxListH = itemsH.map(it => it.amount != null ? Number(it.amount) : (it.qty != null && it.unit_price != null ? Math.round(it.qty * it.unit_price) : null));
   const pretaxsHtmlH = pretaxListH.map((p, i) => `<div style="${_sepStyleH(i, pretaxListH.length)}">${_fmtH(p)}</div>`).join('');
   const taxsHtmlH = pretaxListH.map((p, i) => `<div style="${_sepStyleH(i, pretaxListH.length)}">${_fmtH(p != null ? Math.round(p * 0.05) : null)}</div>`).join('');
-  const totalsHtmlH = pretaxListH.map((p, i) => `<div style="${_sepStyleH(i, pretaxListH.length)}">${_fmtH(p != null ? p + Math.round(p * 0.05) : null)}</div>`).join('');
+  const totalsHtmlH = pretaxListH.map((p, i) => `<div style="${_sepStyleH(i, pretaxListH.length)}">${_fmtH(p != null ? Math.round(p + Math.round(p * 0.05)) : null)}</div>`).join('');  // ★ 含稅總額取整
 
   const headerHtmlH = `<div class="hist-match-head">
     <span>#</span>
@@ -8533,7 +8533,7 @@ function renderHistMatchBar(voucherName, histId, targetEl) {
 
   // 合計：未稅、營業稅、含稅總額（= 收據總額）
   const sumPretaxH = pretaxListH.reduce((s, p) => s + (p || 0), 0);
-  const sumTotalH = sumPretaxH + Math.round(sumPretaxH * 0.05);  // ★ 多筆品項含稅總額加總 = 收據總額
+  const sumTotalH = Math.round(sumPretaxH + Math.round(sumPretaxH * 0.05));  // ★ 收據總額取整（含稅總額不顯示小數）
   const receiptTotalH = sumTotalH;
   // ★ 用相同 grid template，把合計列右對齊到「含稅總額」欄位下方
   const diffHtmlH = (_totalH != null || sumTotalH > 0)
